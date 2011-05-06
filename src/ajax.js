@@ -382,7 +382,7 @@ jQuery.extend({
 						jQuery( callbackContext ) : jQuery.event,
 			// Deferreds
 			deferred = jQuery.Deferred(),
-			completeDeferred = jQuery._Deferred(),
+			completeCallbacks = jQuery.Callbacks( "once memory" ),
 			// Status-dependent callbacks
 			statusCode = s.statusCode || {},
 			// ifModified key
@@ -560,7 +560,7 @@ jQuery.extend({
 			}
 
 			// Complete
-			completeDeferred.resolveWith( callbackContext, [ jqXHR, statusText ] );
+			completeCallbacks.fireWith( callbackContext, [ jqXHR, statusText ] );
 
 			if ( fireGlobals ) {
 				globalEventContext.trigger( "ajaxComplete", [ jqXHR, s] );
@@ -575,7 +575,7 @@ jQuery.extend({
 		deferred.promise( jqXHR );
 		jqXHR.success = jqXHR.done;
 		jqXHR.error = jqXHR.fail;
-		jqXHR.complete = completeDeferred.done;
+		jqXHR.complete = completeCallbacks.add;
 
 		// Status-dependent callbacks
 		jqXHR.statusCode = function( map ) {

@@ -1,7 +1,7 @@
 (function( jQuery ) {
 
-function handleQueueMarkDefer( elem, type, src ) {
-	var deferDataKey = type + "defer",
+function handleCBList( elem, type, src ) {
+	var deferDataKey = type + "cblst",
 		queueDataKey = type + "queue",
 		markDataKey = type + "mark",
 		defer = jQuery.data( elem, deferDataKey, undefined, true );
@@ -14,7 +14,7 @@ function handleQueueMarkDefer( elem, type, src ) {
 			if ( !jQuery.data( elem, queueDataKey, undefined, true ) &&
 				!jQuery.data( elem, markDataKey, undefined, true ) ) {
 				jQuery.removeData( elem, deferDataKey, true );
-				defer.resolve();
+				defer.fireWith();
 			}
 		}, 0 );
 	}
@@ -43,7 +43,7 @@ jQuery.extend({
 				jQuery.data( elem, key, count, true );
 			} else {
 				jQuery.removeData( elem, key, true );
-				handleQueueMarkDefer( elem, type, "mark" );
+				handleCBList( elem, type, "mark" );
 			}
 		}
 	},
@@ -90,7 +90,7 @@ jQuery.extend({
 
 		if ( !queue.length ) {
 			jQuery.removeData( elem, type + "queue", true );
-			handleQueueMarkDefer( elem, type, "queue" );
+			handleCBList( elem, type, "queue" );
 		}
 	}
 });
@@ -146,7 +146,7 @@ jQuery.fn.extend({
 			elements = this,
 			i = elements.length,
 			count = 1,
-			deferDataKey = type + "defer",
+			deferDataKey = type + "cblst",
 			queueDataKey = type + "queue",
 			markDataKey = type + "mark",
 			tmp;
@@ -159,9 +159,9 @@ jQuery.fn.extend({
 			if (( tmp = jQuery.data( elements[ i ], deferDataKey, undefined, true ) ||
 					( jQuery.data( elements[ i ], queueDataKey, undefined, true ) ||
 						jQuery.data( elements[ i ], markDataKey, undefined, true ) ) &&
-					jQuery.data( elements[ i ], deferDataKey, jQuery._Deferred(), true ) )) {
+					jQuery.data( elements[ i ], deferDataKey, jQuery.Callbacks( "once memory" ), true ) )) {
 				count++;
-				tmp.done( resolve );
+				tmp.add( resolve );
 			}
 		}
 		resolve();
