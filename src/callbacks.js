@@ -28,15 +28,17 @@ function createFlags( flags ) {
  *
  * Possible flags:
  *
- *	once:		will ensure the callback list can only be fired once (like a Deferred)
+ *	once:			will ensure the callback list can only be fired once (like a Deferred)
  *
- *	memory:		will keep track of previous values and will call any callback added
- *				after the list has been fired right away with the latest "memorized"
- *				values (like a Deferred)
+ *	memory:			will keep track of previous values and will call any callback added
+ *					after the list has been fired right away with the latest "memorized"
+ *					values (like a Deferred)
  *
- *	unique:		will ensure a callback can only be added once (no duplicate in the list)
+ *	unique:			will ensure a callback can only be added once (no duplicate in the list)
  *
- *	relocate:	like "unique" but will relocate the callback at the end of the list
+ *	relocate:		like "unique" but will relocate the callback at the end of the list
+ *
+ *	stopOnFalse:	interrupt callings when a callback returns false
  *
  */
 jQuery.Callbacks = function( flags, filter ) {
