@@ -56,11 +56,13 @@ jQuery.Callbacks = function( flags, filter ) {
 	var // Actual callback list
 		list = [],
 		// Stack of fire calls for repeatable lists
-		stack = !flags.once && [],
+		stack = [],
 		// Last fire value (for non-forgettable lists)
 		memory,
 		// Flag to know if list is currently firing
 		firing,
+		// Index of cells to remove in the list after firing
+		deleteAfterFire,
 		// Add a list of callbacks to the list
 		add = function( args ) {
 			var i,
@@ -79,15 +81,13 @@ jQuery.Callbacks = function( flags, filter ) {
 					// if it already exists
 					if ( flags.relocate ) {
 						object.remove( elem );
+					} else if ( flags.unique && object.has( elem ) ) {
+						continue;
 					}
-					// Unless we have a list with unicity and the
-					// function is already there, add it
-					if ( !( flags.unique && object.has( elem ) ) ) {
-						// Get the filtered function if needs be
-						actual = filter ? filter(elem) : elem;
-						if ( actual ) {
-							list.push( [ elem, actual ] );
-						}
+					// Get the filtered function if needs be
+					actual = filter ? filter( elem ) : elem;
+					if ( actual ) {
+						list.push( [ elem, actual ] );
 					}
 				}
 			}
@@ -96,13 +96,15 @@ jQuery.Callbacks = function( flags, filter ) {
 			// Add a callback or a collection of callbacks to the list
 			add: function() {
 				if ( list ) {
+					var length = list.length;
 					add( arguments );
-					// If we're not firing and we should call right away
+					// With memory, if we're not firing then
+					// we should call right away
 					if ( !firing && flags.memory && memory ) {
 						// Trick the list into thinking it needs to be fired
 						var tmp = memory;
 						memory = undefined;
-						object.fireWith( tmp[ 0 ], tmp[ 1 ] );
+						object.fireWith( tmp[ 0 ], tmp[ 1 ], length );
 					}
 				}
 				return this;
@@ -113,9 +115,14 @@ jQuery.Callbacks = function( flags, filter ) {
 					var i = 0,
 						length = list.length;
 					for ( ; i < length; i++ ) {
-						if ( fn === list[ i ][ 0 ] ) {
-							list.splice( i, 1 );
-							i--;
+						if ( list[ i ] && fn === list[ i ][ 0 ] ) {
+							if ( firing ) {
+								list[ i ] = undefined;
+								deleteAfterFire.push( i );
+							} else {
+								list.splice( i, 1 );
+								i--;
+							}
 							// If we have some unicity property then
 							// we only need to do this once
 							if ( flags.unique || flags.relocate ) {
@@ -132,7 +139,7 @@ jQuery.Callbacks = function( flags, filter ) {
 					var i = 0,
 						length = list.length;
 					for ( ; i < length; i++ ) {
-						if ( fn === list[ i ][ 0 ] ) {
+						if ( list[ i ] && fn === list[ i ][ 0 ] ) {
 							return true;
 						}
 					}
@@ -158,30 +165,39 @@ jQuery.Callbacks = function( flags, filter ) {
 				return this;
 			},
 			// Call all callbacks with the given context and arguments
-			fireWith: function( context, args ) {
-				var i;
-				if ( list && ( flags.once ? !memory && !firing : stack ) ) {
+			fireWith: function( context, args, start /* internal */ ) {
+				var i,
+					done,
+					stoppedOnFalse;
+				if ( list && stack && ( !flags.once || !memory && !firing ) ) {
 					if ( firing ) {
 						stack.push( [ context, args ] );
 					} else {
 						args = args || [];
 						memory = !flags.memory || [ context, args ];
 						firing = true;
+						deleteAfterFire = [];
 						try {
-							for ( i = 0; list && i < list.length; i++ ) {
-								if ( list[ i ][ 1 ].apply( context, args ) === false && flags.stopOnFalse ) {
+							for ( i = start || 0; list && i < list.length; i++ ) {
+								if (( stoppedOnFalse = list[ i ] &&
+										list[ i ][ 1 ].apply( context, args ) === false &&
+										flags.stopOnFalse )) {
 									break;
 								}
 							}
 						} finally {
 							firing = false;
 							if ( list ) {
+								done = ( stoppedOnFalse || i >= list.length );
+								for ( i = 0; i < deleteAfterFire.length; i++ ) {
+									list.splice( deleteAfterFire[ i ], 1 );
+								}
 								if ( !flags.once ) {
-									if ( i >= list.length && stack.length ) {
-										object.fire.apply( this, stack.shift() );
+									if ( done && stack && stack.length ) {
+										object.fireWith.apply( this, stack.shift() );
 									}
 								} else if ( !flags.memory ) {
-									object.destroy();
+									object.disable();
 								} else {
 									list = [];
 								}
