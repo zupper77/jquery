@@ -12,28 +12,28 @@ var output,
 	outputB = addToOutput( "B" ),
 	outputC = addToOutput( "C" ),
 	tests = {
-		"":							"XABC 	X		XABCABCC 	X 	XBB X	XABA",
-		"once":						"XABC 	X 		X 			X 	X 	X	XABA",
-		"memory":					"XABC 	XABC 	XABCABCCC 	XA 	XBB	XB	XABA",
-		"unique":					"XABC 	X		XABCA		X	XBB	X	XAB",
-		"relocate":					"XABC 	X		XAABC		X	XBB X	XBA",
-		"stopOnFalse":				"XABC 	X		XABCABCC	X	XBB	X	XA",
-		"addAfterFire":				"XAB	X		XABCAB		X	XBB	X	XABA",
-		"once memory":				"XABC 	XABC	X			XA	X	XA	XABA",
-		"once unique":				"XABC 	X		X			X	X	X	XAB",
-		"once relocate":			"XABC 	X		X			X	X	X	XBA",
-		"once stopOnFalse":			"XABC 	X		X			X	X	X	XA",
-		"once addAfterFire":		"XAB	X		X			X	X	X	XABA",
-		"memory unique":			"XABC 	XA		XABCA		XA	XBB	XB	XAB",
-		"memory relocate":			"XABC 	XB		XAABC		XA	XBB	XB	XBA",
-		"memory stopOnFalse":		"XABC 	XABC	XABCABCCC	XA	XBB	XB	XA",
-		"memory addAfterFire":		"XAB	XAB		XABCABC		XA	XBB	XB	XABA",
-		"unique relocate":			"XABC 	X		XAABC		X	XBB	X	XBA",
-		"unique stopOnFalse":		"XABC 	X		XABCA		X	XBB	X	XA",
-		"unique addAfterFire":		"XAB	X		XABCA		X	XBB	X	XAB",
-		"relocate stopOnFalse":		"XABC 	X		XAABC		X	XBB	X	X",
-		"relocate addAfterFire":	"XAB	X		XAA			X	XBB	X	XBA",
-		"stopOnFalse addAfterFire":	"XAB	X		XABCAB		X	XBB	X	XA"
+		"":							"XABC 	X		XABCABCC 	X 	XBB X	XABA	X",
+		"once":						"XABC 	X 		X 			X 	X 	X	XABA	X",
+		"memory":					"XABC 	XABC 	XABCABCCC 	XA 	XBB	XB	XABA	XC",
+		"unique":					"XABC 	X		XABCA		X	XBB	X	XAB		X",
+		"relocate":					"XABC 	X		XAABC		X	XBB X	XBA		X",
+		"stopOnFalse":				"XABC 	X		XABCABCC	X	XBB	X	XA		X",
+		"addAfterFire":				"XAB	X		XABCAB		X	XBB	X	XABA	X",
+		"once memory":				"XABC 	XABC	X			XA	X	XA	XABA	XC",
+		"once unique":				"XABC 	X		X			X	X	X	XAB		X",
+		"once relocate":			"XABC 	X		X			X	X	X	XBA		X",
+		"once stopOnFalse":			"XABC 	X		X			X	X	X	XA		X",
+		"once addAfterFire":		"XAB	X		X			X	X	X	XABA	X",
+		"memory unique":			"XABC 	XA		XABCA		XA	XBB	XB	XAB		XC",
+		"memory relocate":			"XABC 	XB		XAABC		XA	XBB	XB	XBA		XC",
+		"memory stopOnFalse":		"XABC 	XABC	XABCABCCC	XA	XBB	XB	XA		X",
+		"memory addAfterFire":		"XAB	XAB		XABCABC		XA	XBB	XB	XABA	XC",
+		"unique relocate":			"XABC 	X		XAABC		X	XBB	X	XBA		X",
+		"unique stopOnFalse":		"XABC 	X		XABCA		X	XBB	X	XA		X",
+		"unique addAfterFire":		"XAB	X		XABCA		X	XBB	X	XAB		X",
+		"relocate stopOnFalse":		"XABC 	X		XAABC		X	XBB	X	X		X",
+		"relocate addAfterFire":	"XAB	X		XAA			X	XBB	X	XBA		X",
+		"stopOnFalse addAfterFire":	"XAB	X		XABCAB		X	XBB	X	XA		X"
 	},
 	filters = {
 		"no filter": undefined,
@@ -50,7 +50,7 @@ jQuery.each( tests, function( flags, resultString ) {
 
 			test( "jQuery.Callbacks( \"" + flags + "\" ) - " + filterLabel, function() {
 
-				expect( 18 );
+				expect( 19 );
 
 				// Give qunit a little breathing room
 				stop();
@@ -182,6 +182,12 @@ jQuery.each( tests, function( flags, resultString ) {
 				cblist.add( outputA );
 				cblist.fire();
 				strictEqual( output, results.shift(), "Callback returning false" );
+
+				// Add another callback (to control lists with memory do not fire anymore)
+				output = "X";
+				cblist.add( outputC );
+				strictEqual( output, results.shift(), "Adding a callback after one returned false" );
+
 			});
 		});
 });
