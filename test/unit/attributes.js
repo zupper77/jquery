@@ -138,13 +138,13 @@ test("attr(Hash)", function() {
 		if ( this.getAttribute("foo") != "baz" && this.getAttribute("zoo") != "ping" ) pass = false;
 	});
 	ok( pass, "Set Multiple Attributes" );
-			 equals( jQuery("#text1").attr({value: function() { return this.id; }})[0].value, "text1", "Set attribute to computed value #1" );
-			 equals( jQuery("#text1").attr({title: function(i) { return i; }}).attr("title"), "0", "Set attribute to computed value #2");
+	equals( jQuery("#text1").attr({value: function() { return this.id; }})[0].value, "text1", "Set attribute to computed value #1" );
+	equals( jQuery("#text1").attr({title: function(i) { return i; }}).attr("title"), "0", "Set attribute to computed value #2");
 
 });
 
 test("attr(String, Object)", function() {
-	expect(57);
+	expect(59);
 
 	var div = jQuery("div").attr("foo", "bar"),
 		fail = false;
@@ -164,6 +164,8 @@ test("attr(String, Object)", function() {
 	equals( jQuery("#name").attr("name"), "something", "Set name attribute" );
 	jQuery("#name").attr("name", null);
 	equals( jQuery("#name").attr("name"), undefined, "Remove name attribute" );
+	var $input = jQuery("<input>", { name: "something" });
+	equals( $input.attr("name"), "something", "Check element creation gets/sets the name attribute." );
 
 	jQuery("#check2").prop("checked", true).prop("checked", false).attr("checked", true);
 	equals( document.getElementById("check2").checked, true, "Set checked attribute" );
@@ -209,7 +211,11 @@ test("attr(String, Object)", function() {
 	$p.removeAttr("nonexisting");
 
 	var $text = jQuery("#text1").attr("autofocus", true);
-	equals( $text.attr("autofocus"), "autofocus", "Set boolean attributes to the same name");
+	if ( "autofocus" in $text[0] ) {
+		equals( $text.attr("autofocus"), "autofocus", "Set boolean attributes to the same name");
+	} else {
+		equals( $text.attr("autofocus"), undefined, "autofocus stays undefined in browsers that do not support it(F<4)");
+	}
 	equals( $text.attr("autofocus", false).attr("autofocus"), undefined, "Setting autofocus attribute to false removes it");
 	equals( $text.attr("data-something", true).data("something"), true, "Setting data attributes are not affected by boolean settings");
 	equals( $text.attr("data-another", false).data("another"), false, "Setting data attributes are not affected by boolean settings" );
@@ -237,6 +243,8 @@ test("attr(String, Object)", function() {
 	equals( td[0].colSpan, 2, "Check colspan is correctly set" );
 	table.attr("cellspacing", "2");
 	equals( table[0].cellSpacing, "2", "Check cellspacing is correctly set" );
+
+	equals( jQuery("#area1").attr("value"), undefined, "Value attribute retrieved correctly on textarea." );
 
 	// for #1070
 	jQuery("#name").attr("someAttr", "0");
@@ -500,7 +508,7 @@ test("removeProp(String)", function() {
 		strictEqual( ele.nonexisting, undefined, "removeProp works correctly on non DOM element nodes (bug #7500)." );
 	});
 	jQuery.each( [commentNode, textNode, attributeNode], function( i, ele ) {
-		$ele = jQuery( ele );
+		var $ele = jQuery( ele );
 		$ele.prop( "nonexisting", "foo" ).removeProp( "nonexisting" );
 		strictEqual( ele.nonexisting, undefined, "removeProp works correctly on non DOM element nodes (bug #7500)." );
 	});
