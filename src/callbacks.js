@@ -83,6 +83,7 @@ jQuery.Callbacks = function( flags, filter ) {
 					// if it already exists
 					if ( flags.relocate ) {
 						object.remove( elem );
+					// Skip if we're in unique mode and callback is already in
 					} else if ( flags.unique && object.has( elem ) ) {
 						continue;
 					}
@@ -155,6 +156,10 @@ jQuery.Callbacks = function( flags, filter ) {
 				list = stack = memory = undefined;
 				return this;
 			},
+			// Is it disabled?
+			disabled: function() {
+				return !list;
+			},
 			// Lock the list in its current state
 			lock: function() {
 				stack = undefined;
@@ -163,18 +168,24 @@ jQuery.Callbacks = function( flags, filter ) {
 				}
 				return this;
 			},
+			// Is it locked?
+			locked: function() {
+				return !stack;
+			},
 			// Call all callbacks with the given context and arguments
 			fireWith: function( context, args ) {
-				var start = firingStart;
-				firingStart = 0;
-				if ( list && stack && ( !flags.once || !memory && !firing ) ) {
+				if ( list ) {
 					if ( firing ) {
-						stack.push( [ context, args ] );
-					} else {
+						if ( !flags.once ) {
+							stack.push( [ context, args ] );
+						}
+					} else if ( !( flags.once && memory ) ) {
 						args = args || [];
-						memory = !flags.memory || [ context, args ];
+						memory = [ context, args ];
 						firing = true;
-						for ( firingIndex = start || 0; list && firingIndex < list.length; firingIndex++ ) {
+						firingIndex = firingStart || 0;
+						firingStart = 0;
+						for ( ; list && firingIndex < list.length; firingIndex++ ) {
 							if ( list[ firingIndex ][ 1 ].apply( context, args ) === false && flags.stopOnFalse ) {
 								break;
 							}
@@ -183,7 +194,8 @@ jQuery.Callbacks = function( flags, filter ) {
 						if ( list ) {
 							if ( !flags.once ) {
 								if ( stack && stack.length ) {
-									object.fireWith.apply( this, stack.shift() );
+									memory = stack.shift();
+									object.fireWith( memory[ 0 ], memory[ 1 ] );
 								}
 							} else if ( !flags.memory ) {
 								object.disable();
