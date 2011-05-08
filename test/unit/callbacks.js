@@ -40,10 +40,6 @@ var output,
 
 jQuery.each( tests, function( flags, resultString ) {
 
-		function createList() {
-			return jQuery.Callbacks( flags );
-		}
-
 		jQuery.each( filters, function( filterLabel, filter ) {
 
 			test( "jQuery.Callbacks( \"" + flags + "\" ) - " + filterLabel, function() {
@@ -59,7 +55,7 @@ jQuery.each( tests, function( flags, resultString ) {
 
 				// Basic binding and firing
 				output = "X";
-				cblist = createList();
+				cblist = jQuery.Callbacks( flags );
 				cblist.add(function( str ) {
 					output += str;
 				});
@@ -76,7 +72,7 @@ jQuery.each( tests, function( flags, resultString ) {
 
 				// Basic binding and firing (context, arguments)
 				output = "X";
-				cblist = createList();
+				cblist = jQuery.Callbacks( flags );
 				cblist.add(function() {
 					equals( this, window, "Basic binding and firing (context)" );
 					output += Array.prototype.join.call( arguments, "" );
@@ -86,7 +82,7 @@ jQuery.each( tests, function( flags, resultString ) {
 
 				// fireWith with no arguments
 				output = "";
-				cblist = createList();
+				cblist = jQuery.Callbacks( flags );
 				cblist.add(function() {
 					equals( this, window, "fireWith with no arguments (context is window)" );
 					strictEqual( arguments.length, 0, "fireWith with no arguments (no arguments)" );
@@ -95,7 +91,7 @@ jQuery.each( tests, function( flags, resultString ) {
 
 				// Basic binding, removing and firing
 				output = "X";
-				cblist = createList();
+				cblist = jQuery.Callbacks( flags );
 				cblist.add( outputA );
 				cblist.add( outputB );
 				cblist.add( outputC );
@@ -105,7 +101,7 @@ jQuery.each( tests, function( flags, resultString ) {
 
 				// Empty
 				output = "X";
-				cblist = createList();
+				cblist = jQuery.Callbacks( flags );
 				cblist.add( outputA );
 				cblist.add( outputB );
 				cblist.add( outputC );
@@ -115,7 +111,7 @@ jQuery.each( tests, function( flags, resultString ) {
 
 				// Locking
 				output = "X";
-				cblist = createList();
+				cblist = jQuery.Callbacks( flags );
 				cblist.add( function( str ) {
 					output += str;
 				});
@@ -131,7 +127,7 @@ jQuery.each( tests, function( flags, resultString ) {
 
 				// Ordering
 				output = "X";
-				cblist = createList();
+				cblist = jQuery.Callbacks( flags );
 				cblist.add( function() {
 					cblist.add( outputC );
 					outputA();
@@ -153,7 +149,7 @@ jQuery.each( tests, function( flags, resultString ) {
 
 				// Multiple fire
 				output = "X";
-				cblist = createList();
+				cblist = jQuery.Callbacks( flags );
 				cblist.add( function( str ) {
 					output += str;
 				} );
