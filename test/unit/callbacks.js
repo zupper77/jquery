@@ -12,22 +12,28 @@ var output,
 	outputB = addToOutput( "B" ),
 	outputC = addToOutput( "C" ),
 	tests = {
-		"":						"X		XABCABCC 	X 	XBB X",
-		"once":					"X 		X 			X 	X 	X",
-		"memory":				"XABC 	XABCABCCC 	XA 	XBB	XB",
-		"unique":				"X		XABCA		X	XBB	X",
-		"relocate":				"X		XAABC		X	XBB X",
-		"stopOnFalse":			"X		XABCABCC	X	XBB	X",
-		"once memory":			"XABC	X			XA	X	XA",
-		"once unique":			"X		X			X	X	X",
-		"once relocate":		"X		X			X	X	X",
-		"once stopOnFalse":		"X		X			X	X	X",
-		"memory unique":		"XA		XABCA		XA	XBB	XB",
-		"memory relocate":		"XB		XAABC		XA	XBB	XB",
-		"memory stopOnFalse":	"XABC	XABCABCCC	XA	XBB	XB",
-		"unique relocate":		"X		XAABC		X	XBB	X",
-		"unique stopOnFalse":	"X		XABCA		X	XBB	X",
-		"relocate stopOnFalse":	"X		XAABC		X	XBB	X"
+		"":							"XABC 	X		XABCABCC 	X 	XBB X	XABA",
+		"once":						"XABC 	X 		X 			X 	X 	X	XABA",
+		"memory":					"XABC 	XABC 	XABCABCCC 	XA 	XBB	XB	XABA",
+		"unique":					"XABC 	X		XABCA		X	XBB	X	XAB",
+		"relocate":					"XABC 	X		XAABC		X	XBB X	XBA",
+		"stopOnFalse":				"XABC 	X		XABCABCC	X	XBB	X	XA",
+		"addAfterFire":				"XAB	X		XABCAB		X	XBB	X	XABA",
+		"once memory":				"XABC 	XABC	X			XA	X	XA	XABA",
+		"once unique":				"XABC 	X		X			X	X	X	XAB",
+		"once relocate":			"XABC 	X		X			X	X	X	XBA",
+		"once stopOnFalse":			"XABC 	X		X			X	X	X	XA",
+		"once addAfterFire":		"XAB	X		X			X	X	X	XABA",
+		"memory unique":			"XABC 	XA		XABCA		XA	XBB	XB	XAB",
+		"memory relocate":			"XABC 	XB		XAABC		XA	XBB	XB	XBA",
+		"memory stopOnFalse":		"XABC 	XABC	XABCABCCC	XA	XBB	XB	XA",
+		"memory addAfterFire":		"XAB	XAB		XABCABC		XA	XBB	XB	XABA",
+		"unique relocate":			"XABC 	X		XAABC		X	XBB	X	XBA",
+		"unique stopOnFalse":		"XABC 	X		XABCA		X	XBB	X	XA",
+		"unique addAfterFire":		"XAB	X		XABCA		X	XBB	X	XAB",
+		"relocate stopOnFalse":		"XABC 	X		XAABC		X	XBB	X	X",
+		"relocate addAfterFire":	"XAB	X		XAA			X	XBB	X	XBA",
+		"stopOnFalse addAfterFire":	"XAB	X		XABCAB		X	XBB	X	XA"
 	},
 	filters = {
 		"no filter": undefined,
@@ -44,7 +50,7 @@ jQuery.each( tests, function( flags, resultString ) {
 
 			test( "jQuery.Callbacks( \"" + flags + "\" ) - " + filterLabel, function() {
 
-				expect( 17 );
+				expect( 18 );
 
 				// Give qunit a little breathing room
 				stop();
@@ -133,7 +139,7 @@ jQuery.each( tests, function( flags, resultString ) {
 					outputA();
 				}, outputB );
 				cblist.fire();
-				strictEqual( output, "XABC", "Proper ordering" );
+				strictEqual( output, results.shift(), "Proper ordering" );
 
 				// Add and fire again
 				output = "X";
@@ -169,6 +175,13 @@ jQuery.each( tests, function( flags, resultString ) {
 				} );
 				strictEqual( output, results.shift(), "Multiple fire (second new callback)" );
 
+				// Return false
+				output = "X";
+				cblist = jQuery.Callbacks( flags );
+				cblist.add( outputA, function() { return false; }, outputB );
+				cblist.add( outputA );
+				cblist.fire();
+				strictEqual( output, results.shift(), "Callback returning false" );
 			});
 		});
 });

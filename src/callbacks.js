@@ -40,6 +40,9 @@ function createFlags( flags ) {
  *
  *	stopOnFalse:	interrupt callings when a callback returns false
  *
+ *	addAfterFire:	if callbacks are added while firing, then they are not executed until after
+ *					the next call to fire/fireWith
+ *
  */
 jQuery.Callbacks = function( flags, filter ) {
 
@@ -63,6 +66,8 @@ jQuery.Callbacks = function( flags, filter ) {
 		firing,
 		// First callback to fire (used internally by add and fireWith)
 		firingStart,
+		// End of the loop when firing
+		firingLength,
 		// Index of currently firing callback (modified by remove if needed)
 		firingIndex,
 		// Add a list of callbacks to the list
@@ -101,9 +106,15 @@ jQuery.Callbacks = function( flags, filter ) {
 				if ( list ) {
 					var length = list.length;
 					add( arguments );
+					// Do we need to add the callbacks to the
+					// current firing batch?
+					if ( firing ) {
+						if ( !flags.addAfterFire ) {
+							firingLength = list.length;
+						}
 					// With memory, if we're not firing then
 					// we should call right away
-					if ( !firing && flags.memory && memory ) {
+					} else if ( flags.memory && memory ) {
 						var tmp = memory;
 						memory = undefined;
 						firingStart = length;
@@ -117,9 +128,14 @@ jQuery.Callbacks = function( flags, filter ) {
 				if ( list ) {
 					for ( var i = 0; i < list.length; i++ ) {
 						if ( fn === list[ i ][ 0 ] ) {
-							// Handle firingIndex
-							if ( firing && i <= firingIndex ) {
-								firingIndex--;
+							// Handle firingIndex and firingLength
+							if ( firing ) {
+								if ( i <= firingLength ) {
+									firingLength--;
+									if ( i <= firingIndex ) {
+										firingIndex--;
+									}
+								}
 							}
 							// Remove the element
 							list.splice( i--, 1 );
@@ -185,7 +201,8 @@ jQuery.Callbacks = function( flags, filter ) {
 						firing = true;
 						firingIndex = firingStart || 0;
 						firingStart = 0;
-						for ( ; list && firingIndex < list.length; firingIndex++ ) {
+						firingLength = list.length;
+						for ( ; list && firingIndex < firingLength; firingIndex++ ) {
 							if ( list[ firingIndex ][ 1 ].apply( context, args ) === false && flags.stopOnFalse ) {
 								break;
 							}
