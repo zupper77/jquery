@@ -1,7 +1,7 @@
 (function( jQuery ) {
 
 var // Promise methods
-	promiseMethods = "done fail progress isResolved isRejected promise then always pipe".split( " " ),
+	promiseMethods = "done removeDone fail removeFail progress removeProgress isResolved isRejected promise then always pipe".split( " " ),
 	// Static reference to slice
 	sliceDeferred = [].slice;
 
@@ -25,7 +25,7 @@ jQuery.extend({
 				reject: failList.fire,
 				rejectWith: failList.fireWith,
 				ping: progressList.fire,
-				pingWith: progressList.pingWith,
+				pingWith: progressList.fireWith,
 				isResolved: doneList.fired,
 				isRejected: failList.fired,
 
@@ -102,7 +102,8 @@ jQuery.extend({
 			pCount = length,
 			deferred = length <= 1 && firstParam && jQuery.isFunction( firstParam.promise ) ?
 				firstParam :
-				jQuery.Deferred();
+				jQuery.Deferred(),
+			promise = deferred.promise();
 		function resolveFunc( i ) {
 			return function( value ) {
 				args[ i ] = arguments.length > 1 ? sliceDeferred.call( arguments, 0 ) : value;
@@ -114,9 +115,7 @@ jQuery.extend({
 		function progressFunc( i ) {
 			return function( value ) {
 				pValues[ i ] = arguments.length > 1 ? sliceDeferred.call( arguments, 0 ) : value;
-				if ( !( --count ) ) {
-					deferred.pingWith( deferred, pValue );
-				}
+				deferred.pingWith( promise, pValues );
 			};
 		}
 		if ( length > 1 ) {
@@ -133,7 +132,7 @@ jQuery.extend({
 		} else if ( deferred !== firstParam ) {
 			deferred.resolveWith( deferred, length ? [ firstParam ] : [] );
 		}
-		return deferred.promise();
+		return promise;
 	}
 });
 
