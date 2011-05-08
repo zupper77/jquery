@@ -191,7 +191,7 @@ jQuery.Callbacks = function( flags, filter ) {
 			},
 			// Call all callbacks with the given context and arguments
 			fireWith: function( context, args ) {
-				if ( list ) {
+				if ( stack ) {
 					if ( firing ) {
 						if ( !flags.once ) {
 							stack.push( [ context, args ] );
