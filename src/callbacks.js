@@ -61,8 +61,10 @@ jQuery.Callbacks = function( flags, filter ) {
 		memory,
 		// Flag to know if list is currently firing
 		firing,
-		// Index of cells to remove in the list after firing
-		deleteAfterFire,
+		// First callback to fire (used internally by add and fireWith)
+		firingStart,
+		// Index of currently firing callback (modified by remove if needed)
+		firingIndex,
 		// Add a list of callbacks to the list
 		add = function( args ) {
 			var i,
@@ -101,10 +103,10 @@ jQuery.Callbacks = function( flags, filter ) {
 					// With memory, if we're not firing then
 					// we should call right away
 					if ( !firing && flags.memory && memory ) {
-						// Trick the list into thinking it needs to be fired
 						var tmp = memory;
 						memory = undefined;
-						object.fireWith( tmp[ 0 ], tmp[ 1 ], length );
+						firingStart = length;
+						object.fireWith( tmp[ 0 ], tmp[ 1 ] );
 					}
 				}
 				return this;
@@ -112,17 +114,14 @@ jQuery.Callbacks = function( flags, filter ) {
 			// Remove a callback from the list
 			remove: function( fn ) {
 				if ( list ) {
-					var i = 0,
-						length = list.length;
-					for ( ; i < length; i++ ) {
-						if ( list[ i ] && fn === list[ i ][ 0 ] ) {
-							if ( firing ) {
-								list[ i ] = undefined;
-								deleteAfterFire.push( i );
-							} else {
-								list.splice( i, 1 );
-								i--;
+					for ( var i = 0; i < list.length; i++ ) {
+						if ( fn === list[ i ][ 0 ] ) {
+							// Handle firingIndex
+							if ( firing && i <= firingIndex ) {
+								firingIndex--;
 							}
+							// Remove the element
+							list.splice( i--, 1 );
 							// If we have some unicity property then
 							// we only need to do this once
 							if ( flags.unique || flags.relocate ) {
@@ -139,7 +138,7 @@ jQuery.Callbacks = function( flags, filter ) {
 					var i = 0,
 						length = list.length;
 					for ( ; i < length; i++ ) {
-						if ( list[ i ] && fn === list[ i ][ 0 ] ) {
+						if ( fn === list[ i ][ 0 ] ) {
 							return true;
 						}
 					}
@@ -165,10 +164,9 @@ jQuery.Callbacks = function( flags, filter ) {
 				return this;
 			},
 			// Call all callbacks with the given context and arguments
-			fireWith: function( context, args, start /* internal */ ) {
-				var i,
-					done,
-					stoppedOnFalse;
+			fireWith: function( context, args ) {
+				var start = firingStart;
+				firingStart = 0;
 				if ( list && stack && ( !flags.once || !memory && !firing ) ) {
 					if ( firing ) {
 						stack.push( [ context, args ] );
@@ -176,31 +174,21 @@ jQuery.Callbacks = function( flags, filter ) {
 						args = args || [];
 						memory = !flags.memory || [ context, args ];
 						firing = true;
-						deleteAfterFire = [];
-						try {
-							for ( i = start || 0; list && i < list.length; i++ ) {
-								if (( stoppedOnFalse = list[ i ] &&
-										list[ i ][ 1 ].apply( context, args ) === false &&
-										flags.stopOnFalse )) {
-									break;
-								}
+						for ( firingIndex = start || 0; list && firingIndex < list.length; firingIndex++ ) {
+							if ( list[ firingIndex ][ 1 ].apply( context, args ) === false && flags.stopOnFalse ) {
+								break;
 							}
-						} finally {
-							firing = false;
-							if ( list ) {
-								done = ( stoppedOnFalse || i >= list.length );
-								for ( i = 0; i < deleteAfterFire.length; i++ ) {
-									list.splice( deleteAfterFire[ i ], 1 );
+						}
+						firing = false;
+						if ( list ) {
+							if ( !flags.once ) {
+								if ( stack && stack.length ) {
+									object.fireWith.apply( this, stack.shift() );
 								}
-								if ( !flags.once ) {
-									if ( done && stack && stack.length ) {
-										object.fireWith.apply( this, stack.shift() );
-									}
-								} else if ( !flags.memory ) {
-									object.disable();
-								} else {
-									list = [];
-								}
+							} else if ( !flags.memory ) {
+								object.disable();
+							} else {
+								list = [];
 							}
 						}
 					}
