@@ -39,7 +39,7 @@ jQuery.each( [ "", " - new operator" ], function( _, withNew ) {
 			createDeferred( function( defer ) {
 				var checked = 0;
 				defer.progress(function( value ) {
-					strictEqual( value, checked, "Progress: right value (" + value + ") received" )
+					strictEqual( value, checked, "Progress: right value (" + value + ") received" );
 				});
 				for( checked = 0; checked < 3 ; checked++ ) {
 					defer.ping( checked );
@@ -146,8 +146,8 @@ test( "jQuery.Deferred.pipe - filtering (progress)", function() {
 
 	defer.ping( 2, 3 );
 
-	strictEqual( value1, 2, "first reject value ok" );
-	strictEqual( value2, 3, "second reject value ok" );
+	strictEqual( value1, 2, "first progress value ok" );
+	strictEqual( value2, 3, "second progress value ok" );
 	strictEqual( value3, 6, "result of filter ok" );
 });
 
@@ -236,8 +236,8 @@ test( "jQuery.Deferred.pipe - deferred (progress)", function() {
 
 	defer.ping( 2, 3 );
 
-	strictEqual( value1, 2, "first reject value ok" );
-	strictEqual( value2, 3, "second reject value ok" );
+	strictEqual( value1, 2, "first progress value ok" );
+	strictEqual( value2, 3, "second progress value ok" );
 	strictEqual( value3, 6, "result of filter ok" );
 });
 
@@ -284,7 +284,7 @@ test( "jQuery.when" , function() {
 
 test("jQuery.when - joined", function() {
 
-	expect(50);
+	expect(53);
 
 	var deferreds = {
 			value: 1,
