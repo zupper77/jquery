@@ -100,6 +100,33 @@ jQuery.Callbacks = function( flags, filter ) {
 				}
 			}
 		},
+		fire = function( context, args ) {
+			args = args || [];
+			memory = !flags.memory || [ context, args ];
+			firing = true;
+			firingIndex = firingStart || 0;
+			firingStart = 0;
+			firingLength = list.length;
+			for ( ; list && firingIndex < firingLength; firingIndex++ ) {
+				if ( list[ firingIndex ][ 1 ].apply( context, args ) === false && flags.stopOnFalse ) {
+					memory = true; // Mark as halted
+					break;
+				}
+			}
+			firing = false;
+			if ( list ) {
+				if ( !flags.once ) {
+					if ( stack && stack.length ) {
+						memory = stack.shift();
+						object.fireWith( memory[ 0 ], memory[ 1 ] );
+					}
+				} else if ( memory === true ) {
+					object.disable();
+				} else {
+					list = [];
+				}
+			}
+		},
 		object = {
 			// Add a callback or a collection of callbacks to the list
 			add: function() {
@@ -116,10 +143,8 @@ jQuery.Callbacks = function( flags, filter ) {
 					// we should call right away, unless previous
 					// firing was halted (stopOnFalse)
 					} else if ( memory && memory !== true ) {
-						var tmp = memory;
-						memory = undefined;
 						firingStart = length;
-						object.fireWith( tmp[ 0 ], tmp[ 1 ] );
+						fire( memory[ 0 ], memory[ 1 ] );
 					}
 				}
 				return this;
@@ -197,31 +222,7 @@ jQuery.Callbacks = function( flags, filter ) {
 							stack.push( [ context, args ] );
 						}
 					} else if ( !( flags.once && memory ) ) {
-						args = args || [];
-						memory = !flags.memory || [ context, args ];
-						firing = true;
-						firingIndex = firingStart || 0;
-						firingStart = 0;
-						firingLength = list.length;
-						for ( ; list && firingIndex < firingLength; firingIndex++ ) {
-							if ( list[ firingIndex ][ 1 ].apply( context, args ) === false && flags.stopOnFalse ) {
-								memory = true; // Mark as halted
-								break;
-							}
-						}
-						firing = false;
-						if ( list ) {
-							if ( !flags.once ) {
-								if ( stack && stack.length ) {
-									memory = stack.shift();
-									object.fireWith( memory[ 0 ], memory[ 1 ] );
-								}
-							} else if ( memory === true ) {
-								object.disable();
-							} else {
-								list = [];
-							}
-						}
+						fire( context, args );
 					}
 				}
 				return this;
