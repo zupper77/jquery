@@ -42,7 +42,7 @@ test( "jQuery.Channel - Named Channel", function() {
 
 test( "jQuery.Channel - Helpers", function() {
 
-	expect( 2 );
+	expect( 4 );
 
 	function callback( value ) {
 		ok( true, "Callback called" );
@@ -53,4 +53,16 @@ test( "jQuery.Channel - Helpers", function() {
 	jQuery.publish( "test" , "test" );
 	jQuery.unsubscribe( "test", callback );
 	jQuery.publish( "test" , "test" );
+
+
+	var test = true,
+		subscription = jQuery.subscribe( "test", function() {
+			ok( test, "first callback called" );
+		}, function() {
+			ok( test, "second callback called" );
+		});
+	jQuery.publish( "test" );
+	test = false;
+	jQuery.unsubscribe( subscription );
+	jQuery.publish( "test" );
 });
