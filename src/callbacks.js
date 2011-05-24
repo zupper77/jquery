@@ -70,7 +70,7 @@ jQuery.Callbacks = function( flags, filter ) {
 		firingLength,
 		// Index of currently firing callback (modified by remove if needed)
 		firingIndex,
-		// Add a list of callbacks to the list
+		// Add one or several callbacks to the list
 		add = function( args ) {
 			var i,
 				length,
@@ -87,9 +87,9 @@ jQuery.Callbacks = function( flags, filter ) {
 					// If we have to relocate, we remove the callback
 					// if it already exists
 					if ( flags.relocate ) {
-						object.remove( elem );
+						self.remove( elem );
 					// Skip if we're in unique mode and callback is already in
-					} else if ( flags.unique && object.has( elem ) ) {
+					} else if ( flags.unique && self.has( elem ) ) {
 						continue;
 					}
 					// Get the filtered function if needs be
@@ -100,6 +100,7 @@ jQuery.Callbacks = function( flags, filter ) {
 				}
 			}
 		},
+		// Fire callbacks
 		fire = function( context, args ) {
 			args = args || [];
 			memory = !flags.memory || [ context, args ];
@@ -118,16 +119,17 @@ jQuery.Callbacks = function( flags, filter ) {
 				if ( !flags.once ) {
 					if ( stack && stack.length ) {
 						memory = stack.shift();
-						object.fireWith( memory[ 0 ], memory[ 1 ] );
+						self.fireWith( memory[ 0 ], memory[ 1 ] );
 					}
 				} else if ( memory === true ) {
-					object.disable();
+					self.disable();
 				} else {
 					list = [];
 				}
 			}
 		},
-		object = {
+		// Actual Callbacks object
+		self = {
 			// Add a callback or a collection of callbacks to the list
 			add: function() {
 				if ( list ) {
@@ -150,25 +152,30 @@ jQuery.Callbacks = function( flags, filter ) {
 				return this;
 			},
 			// Remove a callback from the list
-			remove: function( fn ) {
+			remove: function() {
 				if ( list ) {
-					for ( var i = 0; i < list.length; i++ ) {
-						if ( fn === list[ i ][ 0 ] ) {
-							// Handle firingIndex and firingLength
-							if ( firing ) {
-								if ( i <= firingLength ) {
-									firingLength--;
-									if ( i <= firingIndex ) {
-										firingIndex--;
+					var args = arguments,
+						argIndex = 0,
+						argLength = args.length;
+					for ( ; argIndex < argLength ; argIndex++ ) {
+						for ( var i = 0; i < list.length; i++ ) {
+							if ( args[ argIndex ] === list[ i ][ 0 ] ) {
+								// Handle firingIndex and firingLength
+								if ( firing ) {
+									if ( i <= firingLength ) {
+										firingLength--;
+										if ( i <= firingIndex ) {
+											firingIndex--;
+										}
 									}
 								}
-							}
-							// Remove the element
-							list.splice( i--, 1 );
-							// If we have some unicity property then
-							// we only need to do this once
-							if ( flags.unique || flags.relocate ) {
-								break;
+								// Remove the element
+								list.splice( i--, 1 );
+								// If we have some unicity property then
+								// we only need to do this once
+								if ( flags.unique || flags.relocate ) {
+									break;
+								}
 							}
 						}
 					}
@@ -206,7 +213,7 @@ jQuery.Callbacks = function( flags, filter ) {
 			lock: function() {
 				stack = undefined;
 				if ( !memory || memory === true ) {
-					object.disable();
+					self.disable();
 				}
 				return this;
 			},
@@ -229,7 +236,7 @@ jQuery.Callbacks = function( flags, filter ) {
 			},
 			// Call all the callbacks with the given arguments
 			fire: function() {
-				object.fireWith( this, arguments );
+				self.fireWith( this, arguments );
 				return this;
 			},
 			// To know if the callbacks have already been called at least once
@@ -238,7 +245,7 @@ jQuery.Callbacks = function( flags, filter ) {
 			}
 		};
 
-	return object;
+	return self;
 };
 
 })( jQuery );
