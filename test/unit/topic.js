@@ -1,10 +1,10 @@
-module("channel", { teardown: moduleTeardown });
+module("topic", { teardown: moduleTeardown });
 
-test( "jQuery.Channel - Anonymous Channel", function() {
+test( "jQuery.Topic - Anonymous Topic", function() {
 
 	expect( 4 );
 
-	var channel = jQuery.Channel(),
+	var topic = jQuery.Topic(),
 		count = 0;
 
 	function firstCallback( value ) {
@@ -13,19 +13,19 @@ test( "jQuery.Channel - Anonymous Channel", function() {
 	}
 
 	count++;
-	channel.subscribe( firstCallback );
-	channel.publish( "test" );
-	channel.unsubscribe( firstCallback );
+	topic.subscribe( firstCallback );
+	topic.publish( "test" );
+	topic.unsubscribe( firstCallback );
 	count++;
-	channel.subscribe(function( value ) {
+	topic.subscribe(function( value ) {
 		strictEqual( count, 2, "Callback called when needed" );
 		strictEqual( value, "test", "Published value received" );
 	});
-	channel.publish( "test" );
+	topic.publish( "test" );
 
 });
 
-test( "jQuery.Channel - Named Channel", function() {
+test( "jQuery.Topic - Named Topic", function() {
 
 	expect( 2 );
 
@@ -34,13 +34,13 @@ test( "jQuery.Channel - Named Channel", function() {
 		strictEqual( value, "test", "Proper value received" );
 	}
 
-	jQuery.Channel( "test" ).subscribe( callback );
-	jQuery.Channel( "test" ).publish( "test" );
-	jQuery.Channel( "test" ).unsubscribe( callback );
-	jQuery.Channel( "test" ).publish( "test" );
+	jQuery.Topic( "test" ).subscribe( callback );
+	jQuery.Topic( "test" ).publish( "test" );
+	jQuery.Topic( "test" ).unsubscribe( callback );
+	jQuery.Topic( "test" ).publish( "test" );
 });
 
-test( "jQuery.Channel - Helpers", function() {
+test( "jQuery.Topic - Helpers", function() {
 
 	expect( 4 );
 
