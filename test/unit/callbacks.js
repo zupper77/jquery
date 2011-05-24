@@ -98,12 +98,10 @@ jQuery.each( tests, function( flags, resultString ) {
 				// Basic binding, removing and firing
 				output = "X";
 				cblist = jQuery.Callbacks( flags );
-				cblist.add( outputA );
-				cblist.add( outputB );
-				cblist.add( outputC );
-				cblist.remove( outputB );
+				cblist.add( outputA, outputB, outputC );
+				cblist.remove( outputB, outputC );
 				cblist.fire();
-				strictEqual( output, "XAC", "Basic binding, removing and firing" );
+				strictEqual( output, "XA", "Basic binding, removing and firing" );
 
 				// Empty
 				output = "X";
