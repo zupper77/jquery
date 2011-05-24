@@ -5,7 +5,8 @@
 			publish: "fire",
 			subscribe: "add",
 			unsubscribe: "remove"
-		};
+		},
+		sliceChannel = [].slice;
 
 	jQuery.Channel = function( name ) {
 		var callbacks,
@@ -27,7 +28,7 @@
 	jQuery.each( channelMethods, function( method ) {
 		jQuery[ method ] = function( name ) {
 			var channel = jQuery.Channel( name );
-			channel[ method ].apply( channel, Array.prototype.slice.call( arguments, 1 ) );
+			channel[ method ].apply( channel, sliceChannel.call( arguments, 1 ) );
 		};
 	});
 
