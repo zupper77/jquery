@@ -34,6 +34,9 @@ function createFlags( flags ) {
  *					after the list has been fired right away with the latest "memorized"
  *					values (like a Deferred)
  *
+ *	queue:			only first callback in the list is called each time the list is fired
+ *					(cannot be used in conjunction with memory)
+ *
  *	unique:			will ensure a callback can only be added once (no duplicate in the list)
  *
  *	relocate:		like "unique" but will relocate the callback at the end of the list
@@ -111,6 +114,9 @@ jQuery.Callbacks = function( flags, filter ) {
 			for ( ; list && firingIndex < firingLength; firingIndex++ ) {
 				if ( list[ firingIndex ][ 1 ].apply( context, args ) === false && flags.stopOnFalse ) {
 					memory = true; // Mark as halted
+					break;
+				} else if ( flags.queue ) {
+					list.splice( firingIndex, 1 );
 					break;
 				}
 			}
