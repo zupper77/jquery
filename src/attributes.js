@@ -20,11 +20,11 @@ jQuery.fn.extend({
 			jQuery.removeAttr( this, name );
 		});
 	},
-	
+
 	prop: function( name, value ) {
 		return jQuery.access( this, name, value, true, jQuery.prop );
 	},
-	
+
 	removeProp: function( name ) {
 		name = jQuery.propFix[ name ] || name;
 		return this.each(function() {
@@ -156,7 +156,7 @@ jQuery.fn.extend({
 	val: function( value ) {
 		var hooks, ret,
 			elem = this[0];
-		
+
 		if ( !arguments.length ) {
 			if ( elem ) {
 				hooks = jQuery.valHooks[ elem.nodeName.toLowerCase() ] || jQuery.valHooks[ elem.type ];
@@ -167,9 +167,9 @@ jQuery.fn.extend({
 
 				ret = elem.value;
 
-				return typeof ret === "string" ? 
+				return typeof ret === "string" ?
 					// handle most common string cases
-					ret.replace(rreturn, "") : 
+					ret.replace(rreturn, "") :
 					// handle cases where value is null/undef or number
 					ret == null ? "" : ret;
 			}
@@ -290,15 +290,15 @@ jQuery.extend({
 		height: true,
 		offset: true
 	},
-	
+
 	attrFix: {
 		// Always normalize to ensure hook usage
 		tabindex: "tabIndex"
 	},
-	
+
 	attr: function( elem, name, value, pass ) {
 		var nType = elem.nodeType;
-		
+
 		// don't get/set attributes on text, comment and attribute nodes
 		if ( !elem || nType === 3 || nType === 8 || nType === 2 ) {
 			return undefined;
@@ -367,7 +367,7 @@ jQuery.extend({
 		var propName;
 		if ( elem.nodeType === 1 ) {
 			name = jQuery.attrFix[ name ] || name;
-		
+
 			if ( jQuery.support.getSetAttribute ) {
 				// Use removeAttribute in browsers that support it
 				elem.removeAttribute( name );
@@ -431,7 +431,7 @@ jQuery.extend({
 		frameborder: "frameBorder",
 		contenteditable: "contentEditable"
 	},
-	
+
 	prop: function( elem, name, value ) {
 		var nType = elem.nodeType;
 
@@ -445,7 +445,7 @@ jQuery.extend({
 
 		// Try to normalize/fix the name
 		name = notxml && jQuery.propFix[ name ] || name;
-		
+
 		hooks = jQuery.propHooks[ name ];
 
 		if ( value !== undefined ) {
@@ -465,7 +465,7 @@ jQuery.extend({
 			}
 		}
 	},
-	
+
 	propHooks: {}
 });
 
@@ -522,7 +522,7 @@ if ( !jQuery.support.getSetAttribute ) {
 
 	// propFix is more comprehensive and contains all fixes
 	jQuery.attrFix = jQuery.propFix;
-	
+
 	// Use this for any attribute on a form in IE6/7
 	formHook = jQuery.attrHooks.name = jQuery.attrHooks.title = jQuery.valHooks.button = {
 		get: function( elem, name ) {
