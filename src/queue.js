@@ -4,15 +4,15 @@ function handleQueueMarkDefer( elem, type, src ) {
 	var deferDataKey = type + "defer",
 		queueDataKey = type + "queue",
 		markDataKey = type + "mark",
-		defer = jQuery.data( elem, deferDataKey, undefined, true );
+		defer = jQuery._data( elem, deferDataKey );
 	if ( defer &&
-		( src === "queue" || !jQuery.data( elem, queueDataKey, undefined, true ) ) &&
-		( src === "mark" || !jQuery.data( elem, markDataKey, undefined, true ) ) ) {
+		( src === "queue" || !jQuery._data(elem, queueDataKey) ) &&
+		( src === "mark" || !jQuery._data(elem, markDataKey) ) ) {
 		// Give room for hard-coded callbacks to fire first
 		// and eventually mark/queue something else on the element
 		setTimeout( function() {
-			if ( !jQuery.data( elem, queueDataKey, undefined, true ) &&
-				!jQuery.data( elem, markDataKey, undefined, true ) ) {
+			if ( !jQuery._data( elem, queueDataKey ) &&
+				!jQuery._data( elem, markDataKey ) ) {
 				jQuery.removeData( elem, deferDataKey, true );
 				defer.resolve();
 			}
@@ -25,7 +25,7 @@ jQuery.extend({
 	_mark: function( elem, type ) {
 		if ( elem ) {
 			type = (type || "fx") + "mark";
-			jQuery.data( elem, type, (jQuery.data(elem,type,undefined,true) || 0) + 1, true );
+			jQuery._data( elem, type, (jQuery._data( elem, type ) || 0) + 1 );
 		}
 	},
 
@@ -38,9 +38,9 @@ jQuery.extend({
 		if ( elem ) {
 			type = type || "fx";
 			var key = type + "mark",
-				count = force ? 0 : ( (jQuery.data( elem, key, undefined, true) || 1 ) - 1 );
+				count = force ? 0 : ( (jQuery._data( elem, key ) || 1) - 1 );
 			if ( count ) {
-				jQuery.data( elem, key, count, true );
+				jQuery._data( elem, key, count );
 			} else {
 				jQuery.removeData( elem, key, true );
 				handleQueueMarkDefer( elem, type, "mark" );
@@ -49,13 +49,15 @@ jQuery.extend({
 	},
 
 	queue: function( elem, type, data ) {
+		var q;
 		if ( elem ) {
 			type = (type || "fx") + "queue";
-			var q = jQuery.data( elem, type, undefined, true );
+			q = jQuery._data( elem, type );
+
 			// Speed up dequeue by getting out quickly if this is just a lookup
 			if ( data ) {
 				if ( !q || jQuery.isArray(data) ) {
-					q = jQuery.data( elem, type, jQuery.makeArray(data), true );
+					q = jQuery._data( elem, type, jQuery.makeArray(data) );
 				} else {
 					q.push( data );
 				}

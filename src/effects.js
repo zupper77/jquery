@@ -120,7 +120,7 @@ jQuery.fn.extend({
 	},
 
 	animate: function( prop, speed, easing, callback ) {
-		var optall = jQuery.speed(speed, easing, callback);
+		var optall = jQuery.speed( speed, easing, callback );
 
 		if ( jQuery.isEmptyObject( prop ) ) {
 			return this.each( optall.complete, [ false ] );
@@ -140,8 +140,7 @@ jQuery.fn.extend({
 			var opt = jQuery.extend( {}, optall ),
 				isElement = this.nodeType === 1,
 				hidden = isElement && jQuery(this).is(":hidden"),
-				name, val, p,
-				display, e,
+				name, val, p, e,
 				parts, start, end, unit;
 
 			// will store per property easing and be used to determine when an animation is complete
@@ -182,21 +181,14 @@ jQuery.fn.extend({
 					// animated
 					if ( jQuery.css( this, "display" ) === "inline" &&
 							jQuery.css( this, "float" ) === "none" ) {
-						if ( !jQuery.support.inlineBlockNeedsLayout ) {
+
+						// inline-level elements accept inline-block;
+						// block-level elements need to be inline with layout
+						if ( !jQuery.support.inlineBlockNeedsLayout || defaultDisplay( this.nodeName ) === "inline" ) {
 							this.style.display = "inline-block";
 
 						} else {
-							display = defaultDisplay( this.nodeName );
-
-							// inline-level elements accept inline-block;
-							// block-level elements need to be inline with layout
-							if ( display === "inline" ) {
-								this.style.display = "inline-block";
-
-							} else {
-								this.style.display = "inline";
-								this.style.zoom = 1;
-							}
+							this.style.zoom = 1;
 						}
 					}
 				}
@@ -210,7 +202,7 @@ jQuery.fn.extend({
 				e = new jQuery.fx( this, opt, p );
 				val = prop[ p ];
 
-				if ( rfxtypes.test(val) ) {
+				if ( rfxtypes.test( val ) ) {
 					e[ val === "toggle" ? hidden ? "show" : "hide" : val ]();
 
 				} else {
@@ -259,10 +251,10 @@ jQuery.fn.extend({
 				jQuery._unmark( true, this );
 			}
 			while ( i-- ) {
-				if ( timers[i].elem === this ) {
-					if (gotoEnd) {
+				if ( timers[ i ].elem === this ) {
+					if ( gotoEnd ) {
 						// force the next step to be the last
-						timers[i](true);
+						timers[ i ]( true );
 					}
 
 					timers.splice(i, 1);
@@ -294,7 +286,7 @@ function clearFxNow() {
 function genFx( type, num ) {
 	var obj = {};
 
-	jQuery.each( fxAttrs.concat.apply([], fxAttrs.slice(0,num)), function() {
+	jQuery.each( fxAttrs.concat.apply([], fxAttrs.slice( 0, num )), function() {
 		obj[ this ] = type;
 	});
 
@@ -303,9 +295,9 @@ function genFx( type, num ) {
 
 // Generate shortcuts for custom animations
 jQuery.each({
-	slideDown: genFx("show", 1),
-	slideUp: genFx("hide", 1),
-	slideToggle: genFx("toggle", 1),
+	slideDown: genFx( "show", 1 ),
+	slideUp: genFx( "hide", 1 ),
+	slideToggle: genFx( "toggle", 1 ),
 	fadeIn: { opacity: "show" },
 	fadeOut: { opacity: "hide" },
 	fadeToggle: { opacity: "toggle" }
@@ -317,15 +309,15 @@ jQuery.each({
 
 jQuery.extend({
 	speed: function( speed, easing, fn ) {
-		var opt = speed && typeof speed === "object" ? jQuery.extend({}, speed) : {
+		var opt = speed && typeof speed === "object" ? jQuery.extend( {}, speed ) : {
 			complete: fn || !fn && easing ||
 				jQuery.isFunction( speed ) && speed,
 			duration: speed,
-			easing: fn && easing || easing && !jQuery.isFunction(easing) && easing
+			easing: fn && easing || easing && !jQuery.isFunction( easing ) && easing
 		};
 
 		opt.duration = jQuery.fx.off ? 0 : typeof opt.duration === "number" ? opt.duration :
-			opt.duration in jQuery.fx.speeds ? jQuery.fx.speeds[opt.duration] : jQuery.fx.speeds._default;
+			opt.duration in jQuery.fx.speeds ? jQuery.fx.speeds[ opt.duration ] : jQuery.fx.speeds._default;
 
 		// Queueing
 		opt.old = opt.complete;
@@ -372,12 +364,12 @@ jQuery.fx.prototype = {
 			this.options.step.call( this.elem, this.now, this );
 		}
 
-		(jQuery.fx.step[this.prop] || jQuery.fx.step._default)( this );
+		(jQuery.fx.step[ this.prop ] || jQuery.fx.step._default)( this );
 	},
 
 	// Get the current size
 	cur: function() {
-		if ( this.elem[this.prop] != null && (!this.elem.style || this.elem.style[this.prop] == null) ) {
+		if ( this.elem[ this.prop ] != null && (!this.elem.style || this.elem.style[ this.prop ] == null) ) {
 			return this.elem[ this.prop ];
 		}
 
@@ -396,14 +388,13 @@ jQuery.fx.prototype = {
 			raf;
 
 		this.startTime = fxNow || createFxNow();
-		this.start = from;
 		this.end = to;
-		this.unit = unit || this.unit || ( jQuery.cssNumber[ this.prop ] ? "" : "px" );
-		this.now = this.start;
+		this.now = this.start = from;
 		this.pos = this.state = 0;
+		this.unit = unit || this.unit || ( jQuery.cssNumber[ this.prop ] ? "" : "px" );
 
 		function t( gotoEnd ) {
-			return self.step(gotoEnd);
+			return self.step( gotoEnd );
 		}
 
 		t.elem = this.elem;
@@ -429,13 +420,13 @@ jQuery.fx.prototype = {
 	// Simple 'show' function
 	show: function() {
 		// Remember where we started, so that we can go back to it later
-		this.options.orig[this.prop] = jQuery.style( this.elem, this.prop );
+		this.options.orig[ this.prop ] = jQuery.style( this.elem, this.prop );
 		this.options.show = true;
 
 		// Begin the animation
 		// Make sure that we start at a small width/height to avoid any
 		// flash of content
-		this.custom(this.prop === "width" || this.prop === "height" ? 1 : 0, this.cur());
+		this.custom( this.prop === "width" || this.prop === "height" ? 1 : 0, this.cur() );
 
 		// Start by showing the element
 		jQuery( this.elem ).show();
@@ -444,11 +435,11 @@ jQuery.fx.prototype = {
 	// Simple 'hide' function
 	hide: function() {
 		// Remember where we started, so that we can go back to it later
-		this.options.orig[this.prop] = jQuery.style( this.elem, this.prop );
+		this.options.orig[ this.prop ] = jQuery.style( this.elem, this.prop );
 		this.options.hide = true;
 
 		// Begin the animation
-		this.custom(this.cur(), 0);
+		this.custom( this.cur(), 0 );
 	},
 
 	// Each step of an animation
@@ -467,7 +458,7 @@ jQuery.fx.prototype = {
 			options.animatedProperties[ this.prop ] = true;
 
 			for ( i in options.animatedProperties ) {
-				if ( options.animatedProperties[i] !== true ) {
+				if ( options.animatedProperties[ i ] !== true ) {
 					done = false;
 				}
 			}
@@ -476,14 +467,14 @@ jQuery.fx.prototype = {
 				// Reset the overflow
 				if ( options.overflow != null && !jQuery.support.shrinkWrapBlocks ) {
 
-					jQuery.each( [ "", "X", "Y" ], function (index, value) {
-						elem.style[ "overflow" + value ] = options.overflow[index];
+					jQuery.each( [ "", "X", "Y" ], function( index, value ) {
+						elem.style[ "overflow" + value ] = options.overflow[ index ];
 					});
 				}
 
 				// Hide the element if the "hide" operation was done
 				if ( options.hide ) {
-					jQuery(elem).hide();
+					jQuery( elem ).hide();
 				}
 
 				// Reset the properties, if the item has been hidden or shown
@@ -508,8 +499,8 @@ jQuery.fx.prototype = {
 				this.state = n / options.duration;
 
 				// Perform the easing function, defaults to swing
-				this.pos = jQuery.easing[ options.animatedProperties[ this.prop ] ]( this.state, n, 0, 1, options.duration );
-				this.now = this.start + ((this.end - this.start) * this.pos);
+				this.pos = jQuery.easing[ options.animatedProperties[this.prop] ]( this.state, n, 0, 1, options.duration );
+				this.now = this.start + ( (this.end - this.start) * this.pos );
 			}
 			// Perform the next step of the animation
 			this.update();
@@ -522,7 +513,7 @@ jQuery.fx.prototype = {
 jQuery.extend( jQuery.fx, {
 	tick: function() {
 		for ( var timers = jQuery.timers, i = 0 ; i < timers.length ; ++i ) {
-			if ( !timers[i]() ) {
+			if ( !timers[ i ]() ) {
 				timers.splice(i--, 1);
 			}
 		}
@@ -553,12 +544,20 @@ jQuery.extend( jQuery.fx, {
 
 		_default: function( fx ) {
 			if ( fx.elem.style && fx.elem.style[ fx.prop ] != null ) {
-				fx.elem.style[ fx.prop ] = (fx.prop === "width" || fx.prop === "height" ? Math.max(0, fx.now) : fx.now) + fx.unit;
+				fx.elem.style[ fx.prop ] = fx.now + fx.unit;
 			} else {
 				fx.elem[ fx.prop ] = fx.now;
 			}
 		}
 	}
+});
+
+// Adds width/height step functions
+// Do not set anything below 0
+jQuery.each([ "width", "height" ], function( i, prop ) {
+	jQuery.fx.step[ prop ] = function( fx ) {
+		jQuery.style( fx.elem, prop, Math.max(0, fx.now) );
+	};
 });
 
 if ( jQuery.expr && jQuery.expr.filters ) {
