@@ -141,7 +141,8 @@ jQuery.fn.extend({
 				isElement = this.nodeType === 1,
 				hidden = isElement && jQuery(this).is(":hidden"),
 				name, val, p, e,
-				parts, start, end, unit;
+				parts, start, end, unit,
+				method;
 
 			// will store per property easing and be used to determine when an animation is complete
 			opt.animatedProperties = {};
@@ -203,7 +204,15 @@ jQuery.fn.extend({
 				val = prop[ p ];
 
 				if ( rfxtypes.test( val ) ) {
-					e[ val === "toggle" ? hidden ? "show" : "hide" : val ]();
+					// Tracks whether to show or hide based on private
+					// data attached to the element
+					method = jQuery._data( this, "toggle" + p ) || (val === "toggle" ? hidden ? "show" : "hide" : 0);
+					if ( method ) {
+						jQuery._data( this, "toggle" + p, method === "show" ? "hide" : "show" );
+						e[ method ]();
+					} else {
+						e[ val ]();
+					}
 
 				} else {
 					parts = rfxnum.exec( val );
@@ -246,6 +255,7 @@ jQuery.fn.extend({
 		this.each(function() {
 			var timers = jQuery.timers,
 				i = timers.length;
+
 			// clear marker counters if we know they won't be
 			if ( !gotoEnd ) {
 				jQuery._unmark( true, this );
@@ -255,6 +265,8 @@ jQuery.fn.extend({
 					if ( gotoEnd ) {
 						// force the next step to be the last
 						timers[ i ]( true );
+					} else {
+						timers[ i ].saveState();
 					}
 
 					timers.splice(i, 1);
@@ -398,6 +410,11 @@ jQuery.fx.prototype = {
 		}
 
 		t.elem = this.elem;
+		t.saveState = function() {
+			if ( self.options.hide && jQuery._data( self.elem, "fxshow" + self.prop ) === undefined ) {
+				jQuery._data( self.elem, "fxshow" + self.prop, self.start );
+			}
+		};
 
 		if ( t() && jQuery.timers.push(t) && !timerId ) {
 			// Use requestAnimationFrame instead of setInterval if available
@@ -419,14 +436,20 @@ jQuery.fx.prototype = {
 
 	// Simple 'show' function
 	show: function() {
+		var dataShow = jQuery._data( this.elem, "fxshow" + this.prop );
+
 		// Remember where we started, so that we can go back to it later
-		this.options.orig[ this.prop ] = jQuery.style( this.elem, this.prop );
+		this.options.orig[ this.prop ] = dataShow || jQuery.style( this.elem, this.prop );
 		this.options.show = true;
 
 		// Begin the animation
-		// Make sure that we start at a small width/height to avoid any
-		// flash of content
-		this.custom( this.prop === "width" || this.prop === "height" ? 1 : 0, this.cur() );
+		// Make sure that we start at a small width/height to avoid any flash of content
+		if ( dataShow !== undefined ) {
+			// This show is picking up where a previous hide or show left off
+			this.custom( this.cur(), dataShow );
+		} else {
+			this.custom( this.prop === "width" || this.prop === "height" ? 1 : 0, this.cur() );
+		}
 
 		// Start by showing the element
 		jQuery( this.elem ).show();
@@ -435,7 +458,7 @@ jQuery.fx.prototype = {
 	// Simple 'hide' function
 	hide: function() {
 		// Remember where we started, so that we can go back to it later
-		this.options.orig[ this.prop ] = jQuery.style( this.elem, this.prop );
+		this.options.orig[ this.prop ] = jQuery._data( this.elem, "fxshow" + this.prop ) || jQuery.style( this.elem, this.prop );
 		this.options.hide = true;
 
 		// Begin the animation
@@ -448,7 +471,7 @@ jQuery.fx.prototype = {
 			done = true,
 			elem = this.elem,
 			options = this.options,
-			i, n;
+			p, n;
 
 		if ( gotoEnd || t >= options.duration + this.startTime ) {
 			this.now = this.end;
@@ -457,8 +480,8 @@ jQuery.fx.prototype = {
 
 			options.animatedProperties[ this.prop ] = true;
 
-			for ( i in options.animatedProperties ) {
-				if ( options.animatedProperties[ i ] !== true ) {
+			for ( p in options.animatedProperties ) {
+				if ( options.animatedProperties[ p ] !== true ) {
 					done = false;
 				}
 			}
@@ -479,8 +502,11 @@ jQuery.fx.prototype = {
 
 				// Reset the properties, if the item has been hidden or shown
 				if ( options.hide || options.show ) {
-					for ( var p in options.animatedProperties ) {
-						jQuery.style( elem, p, options.orig[p] );
+					for ( p in options.animatedProperties ) {
+						jQuery.style( elem, p, options.orig[ p ] );
+						jQuery.removeData( elem, "fxshow" + p, true );
+						// Toggle data is no longer needed
+						jQuery.removeData( elem, "toggle" + p, true );
 					}
 				}
 
@@ -512,7 +538,7 @@ jQuery.fx.prototype = {
 
 jQuery.extend( jQuery.fx, {
 	tick: function() {
-		for ( var timers = jQuery.timers, i = 0 ; i < timers.length ; ++i ) {
+		for ( var timers = jQuery.timers, i = 0; i < timers.length; i++ ) {
 			if ( !timers[ i ]() ) {
 				timers.splice(i--, 1);
 			}
