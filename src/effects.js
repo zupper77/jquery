@@ -178,8 +178,7 @@ jQuery.fn.extend({
 					opt.overflow = [ this.style.overflow, this.style.overflowX, this.style.overflowY ];
 
 					// Set display property to inline-block for height/width
-					// animations on inline elements that are having width/height
-					// animated
+					// animations on inline elements that are having width/height animated
 					if ( jQuery.css( this, "display" ) === "inline" &&
 							jQuery.css( this, "float" ) === "none" ) {
 
@@ -254,7 +253,8 @@ jQuery.fn.extend({
 
 		this.each(function() {
 			var timers = jQuery.timers,
-				i = timers.length;
+				i = timers.length,
+				timer;
 
 			// clear marker counters if we know they won't be
 			if ( !gotoEnd ) {
@@ -269,7 +269,7 @@ jQuery.fn.extend({
 						timers[ i ].saveState();
 					}
 
-					timers.splice(i, 1);
+					timers.splice( i, 1 );
 				}
 			}
 		});
