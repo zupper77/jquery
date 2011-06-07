@@ -253,8 +253,7 @@ jQuery.fn.extend({
 
 		this.each(function() {
 			var timers = jQuery.timers,
-				i = timers.length,
-				timer;
+				i = timers.length;
 
 			// clear marker counters if we know they won't be
 			if ( !gotoEnd ) {
