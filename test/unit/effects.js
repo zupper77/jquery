@@ -432,19 +432,19 @@ test("animate duration 0", function() {
 	$elem.remove();
 });
 
-test("animate hyphenated properties", function(){
+test("animate hyphenated properties", function() {
 	expect(1);
 	stop();
 
 	jQuery("#foo")
 		.css("font-size", 10)
-		.animate({"font-size": 20}, 200, function(){
+		.animate({"font-size": 20}, 200, function() {
 			equals( this.style.fontSize, "20px", "The font-size property was animated." );
 			start();
 		});
 });
 
-test("animate non-element", function(){
+test("animate non-element", function() {
 	expect(1);
 	stop();
 
@@ -457,28 +457,42 @@ test("animate non-element", function(){
 });
 
 test("stop()", function() {
-	expect(3);
+	expect(4);
 	stop();
 
 	var $foo = jQuery("#foo");
 	var w = 0;
-	$foo.hide().width(200).width();
 
-	$foo.animate({ width: "show" }, 1000);
-	setTimeout(function(){
+	$foo.hide().width(200)
+		.animate({ width: "show" }, 1000);
+
+	setTimeout(function() {
 		var nw = $foo.width();
 		notEqual( nw, w, "An animation occurred " + nw + "px " + w + "px");
 		$foo.stop();
 
 		nw = $foo.width();
 		notEqual( nw, w, "Stop didn't reset the animation " + nw + "px " + w + "px");
-		setTimeout(function(){
+		setTimeout(function() {
 			$foo.removeData();
 			$foo.removeData(undefined, true);
 			equals( nw, $foo.width(), "The animation didn't continue" );
 			start();
 		}, 100);
 	}, 100);
+
+	var $one = jQuery("#fadein");
+	var $two = jQuery("#show");
+	$one.fadeTo(100, 0, function() {
+		$one.stop();
+	});
+	setTimeout(function() {
+		$two.fadeTo(100, 0, function() {
+			equal( $two.css("opacity"), "0", "Stop does not interfere with animations on other elements (#6641)" );
+			// Reset styles
+			$one.add( $two ).css("opacity", "");
+		});
+	}, 50);
 });
 
 test("stop() - several in queue", function() {
