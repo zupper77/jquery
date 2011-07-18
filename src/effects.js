@@ -441,9 +441,6 @@ jQuery.fx.prototype = {
 		this.options.orig[ this.prop ] = dataShow || jQuery.style( this.elem, this.prop );
 		this.options.show = true;
 
-		// Start by showing the element
-		jQuery( this.elem ).show();
-
 		// Begin the animation
 		// Make sure that we start at a small width/height to avoid any flash of content
 		if ( dataShow !== undefined ) {
@@ -452,6 +449,9 @@ jQuery.fx.prototype = {
 		} else {
 			this.custom( this.prop === "width" || this.prop === "height" ? 1 : 0, this.cur() );
 		}
+
+		// Start by showing the element
+		jQuery( this.elem ).show();
 	},
 
 	// Simple 'hide' function

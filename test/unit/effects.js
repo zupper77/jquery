@@ -138,7 +138,7 @@ test("show(Number) - other displays", function() {
 
 // Supports #7397
 test("Persist correct display value", function() {
-	expect(4);
+	expect(3);
 	QUnit.reset();
 	stop();
 
@@ -155,19 +155,16 @@ test("Persist correct display value", function() {
 
 	$span.hide();
 
-	$span.fadeIn(0, function() {
+	$span.fadeIn(100, function() {
 		equals($span.css("display"), display, "Expecting display: " + display);
-		$span.fadeIn(100, function() {
-			equals($span.css("display"), display, "Expecting display: " + display);
-			$span.fadeOut(100, function () {
-				equals($span.css("display"), displayNone, "Expecting display: " + displayNone);
-				$span.fadeIn(100, function() {
-					equals($span.css("display"), display, "Expecting display: " + display);
-					start();
-				});
+		$span.fadeOut(100, function () {
+			equals($span.css("display"), displayNone, "Expecting display: " + displayNone);
+			$span.fadeIn(100, function() {
+				equals($span.css("display"), display, "Expecting display: " + display);
+				start();
 			});
 		});
-	})
+	});
 });
 
 test("show() resolves correct default display #8099", function() {
@@ -383,7 +380,7 @@ test("animate with no properties", function() {
 });
 
 test("animate duration 0", function() {
-	expect(12);
+	expect(11);
 
 	stop();
 
@@ -396,7 +393,8 @@ test("animate duration 0", function() {
 		counter++;
 	});
 
-	equals( jQuery.timers.length, 0, "Make sure synchronous animations are not left on jQuery.timers (#6115)" );
+	// Failed until [6115]
+	equals( jQuery.timers.length, 0, "Make sure synchronic animations are not left on jQuery.timers" );
 
 	equals( counter, 1, "One synchronic animations" );
 
@@ -405,7 +403,7 @@ test("animate duration 0", function() {
 		counter++;
 	});
 
-	equals( counter, 3, "Multiple synchronous animations" );
+	equals( counter, 3, "Multiple synchronic animations" );
 
 	$elems.eq(0).animate( {a:3}, 0, function(){
 		ok( true, "Animate a third simple property." );
@@ -413,19 +411,17 @@ test("animate duration 0", function() {
 	});
 	$elems.eq(1).animate( {a:3}, 200, function(){
 		counter++;
-		equals( counter, 5, "One synchronous and one asynchronous (#6115)" );
+		// Failed until [6115]
+		equals( counter, 5, "One synchronic and one asynchronic" );
 		start();
 	});
 
-	var $elem = jQuery("<div />").appendTo("#fx-tests");
+	var $elem = jQuery("<div />");
 	$elem.show(0, function(){
 		ok(true, "Show callback with no duration");
 	});
 	$elem.hide(0, function(){
-		equal( $elem.css("display"), "none", "Hide callback with no duration" );
-	});
-	$elem.fadeIn(0, function() {
-		ok( $elem.is(":visible"), "Duration zero animations still have visible elements at time of callback (#8892)" );
+		ok(true, "Hide callback with no duration");
 	});
 
 	// manually clean up detached elements
@@ -594,7 +590,7 @@ test("toggle()", function() {
 	ok( x.is(":visible"), "is visible again" );
 });
 
-jQuery.checkOverflowDisplay = function() {
+jQuery.checkOverflowDisplay = function(){
 	var o = jQuery.css( this, "overflow" );
 
 	equals(o, "visible", "Overflow should be visible: " + o);
