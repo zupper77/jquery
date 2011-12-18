@@ -5,6 +5,7 @@ Contribution Guides
 --------------------------------------
 
 In the spirit of open source software development, jQuery always encourages community code contribution. To help you get started and before you jump into writing code, be sure to read these important contribution guidelines thoroughly:
+
 1. [Getting Involved](http://docs.jquery.com/Getting_Involved)
 2. [Core Style Guide](http://docs.jquery.com/JQuery_Core_Style_Guidelines)
 3. [Tips For Bug Patching](http://docs.jquery.com/Tips_for_jQuery_Bug_Patching)
@@ -14,7 +15,7 @@ In the spirit of open source software development, jQuery always encourages comm
 What you need to build your own jQuery
 --------------------------------------
 
-In order to build jQuery, you need to have GNU make 3.8 or later, Node.js 0.2 or later, and git 1.7 or later.
+In order to build jQuery, you need to have GNU make 3.8 or later, Node.js 0.4.12 or later, and git 1.7 or later.
 (Earlier versions might work OK, but are not tested.)
 
 Windows users have two options:

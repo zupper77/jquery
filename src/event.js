@@ -2,7 +2,7 @@
 
 var rformElems = /^(?:textarea|input|select)$/i,
 	rtypenamespace = /^([^\.]*)?(?:\.(.+))?$/,
-	rhoverHack = /\bhover(\.\S+)?\b/,
+	rhoverHack = /(?:^|\s)hover(\.\S+)?\b/,
 	rkeyEvent = /^key/,
 	rmouseEvent = /^(?:mouse|contextmenu)|click/,
 	rfocusMorph = /^(?:focusinfocus|focusoutblur)$/,
@@ -101,7 +101,7 @@ jQuery.event = {
 				handler: handler,
 				guid: handler.guid,
 				selector: selector,
-				quick: quickParse( selector ),
+				quick: selector && quickParse( selector ),
 				namespace: namespaces.join(".")
 			}, handleObjIn );
 
@@ -185,9 +185,9 @@ jQuery.event = {
 				handleObj = eventType[ j ];
 
 				if ( ( mappedTypes || origType === handleObj.origType ) &&
-					 ( !handler || handler.guid === handleObj.guid ) &&
-					 ( !namespaces || namespaces.test( handleObj.namespace ) ) &&
-					 ( !selector || selector === handleObj.selector || selector === "**" && handleObj.selector ) ) {
+					( !handler || handler.guid === handleObj.guid ) &&
+					( !namespaces || namespaces.test( handleObj.namespace ) ) &&
+					( !selector || selector === handleObj.selector || selector === "**" && handleObj.selector ) ) {
 					eventType.splice( j--, 1 );
 
 					if ( handleObj.selector ) {
@@ -915,14 +915,14 @@ jQuery.fn.extend({
 		});
 	},
 	one: function( types, selector, data, fn ) {
-		return this.on.call( this, types, selector, data, fn, 1 );
+		return this.on( types, selector, data, fn, 1 );
 	},
 	off: function( types, selector, fn ) {
 		if ( types && types.preventDefault && types.handleObj ) {
 			// ( event )  dispatched jQuery.Event
 			var handleObj = types.handleObj;
 			jQuery( types.delegateTarget ).off(
-				handleObj.namespace? handleObj.type + "." + handleObj.namespace : handleObj.type,
+				handleObj.namespace ? handleObj.origType + "." + handleObj.namespace : handleObj.origType,
 				handleObj.selector,
 				handleObj.handler
 			);

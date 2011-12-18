@@ -787,7 +787,7 @@ test("unbind(eventObject)", function() {
 });
 
 test("hover() and hover pseudo-event", function() {
-	expect(2);
+	expect(3);
 
 	var times = 0,
 		handler1 = function( event ) { ++times; },
@@ -810,6 +810,9 @@ test("hover() and hover pseudo-event", function() {
 		.on( "hovercraft", function() {
 			ok( false, "hovercraft is full of ills" );
 		})
+		.on( "click.hover.me.not", function( e ) {
+			equal( e.handleObj.namespace, "hover.me.not", "hover hack doesn't mangle namespaces" );
+		})
 		.bind("hover", function( e ) {
 			if ( e.type === "mouseenter" ) {
 				balance++;
@@ -819,6 +822,7 @@ test("hover() and hover pseudo-event", function() {
 				ok( false, "hover pseudo: unknown event type "+e.type );
 			}
 		})
+		.trigger("click")
 		.trigger("mouseenter")
 		.trigger("mouseleave")
 		.unbind("hover")
@@ -2521,7 +2525,7 @@ test(".on and .off", function() {
 });
 
 test("special bind/delegate name mapping", function() {
-	expect( 6 );
+	expect( 7 );
 
 	jQuery.event.special.slap = {
 		bindType: "click",
@@ -2561,6 +2565,8 @@ test("special bind/delegate name mapping", function() {
 		delegateType: "click",
 		handle: function( event ) {
 			equal( event.handleObj.origType, "gutfeeling", "got a gutfeeling" );
+			// Need to call the handler since .one() uses it to unbind
+			return event.handleObj.handler.call( this , event );
 		}
 	};
 
@@ -2577,6 +2583,13 @@ test("special bind/delegate name mapping", function() {
 		.on( "gutfeeling.Devo", jQuery.noop )
 		.off( ".Devo" )
 		.trigger( "gutfeeling" )
+		.remove();
+
+	// Ensure .one() events are removed after their maiden voyage
+	jQuery( '<p>Gut Feeling</p>' )
+		.one( "gutfeeling", jQuery.noop )
+		.trigger( "gutfeeling" )	// This one should 
+		.trigger( "gutfeeling" )	// This one should not
 		.remove();
 
 	delete jQuery.event.special.gutfeeling;

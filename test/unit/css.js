@@ -1,13 +1,17 @@
 module("css", { teardown: moduleTeardown });
 
 test("css(String|Hash)", function() {
-	expect( 44 );
+	expect( 46 );
 
-	equal( jQuery("#qunit-fixture").css("display"), "block", "Check for css property \"display\"");
+	equal( jQuery("#qunit-fixture").css("display"), "block", "Check for css property \"display\"" );
 
-	ok( jQuery("#nothiddendiv").is(":visible"), "Modifying CSS display: Assert element is visible");
-	jQuery("#nothiddendiv").css({display: "none"});
-	ok( !jQuery("#nothiddendiv").is(":visible"), "Modified CSS display: Assert element is hidden");
+	ok( jQuery("#nothiddendiv").is(":visible"), "Modifying CSS display: Assert element is visible" );
+	jQuery("#nothiddendiv").css({ display: "none" });
+	ok( !jQuery("#nothiddendiv").is(":visible"), "Modified CSS display: Assert element is hidden" );
+	var $child = jQuery("#nothiddendivchild").css({ width: "20%", height: "20%" });
+	notEqual( $child.css("width"), "20px", "Retrieving a width percentage on the child of a hidden div returns percentage" );
+	notEqual( $child.css("height"), "20px", "Retrieving a height percentage on the child of a hidden div returns percentage" );
+
 	jQuery("#nothiddendiv").css({display: "block"});
 	ok( jQuery("#nothiddendiv").is(":visible"), "Modified CSS display: Assert element is visible");
 	ok( jQuery(window).is(":visible"), "Calling is(':visible') on window does not throw an error in IE.");
@@ -511,12 +515,82 @@ test("can't get css for disconnected in IE<9, see #10254 and #8388", function() 
 	equal( div.css( "top" ), "10px", "can't get top in IE<9, see #8388" );
 });
 
+test("can't get background-position in IE<9, see #10796", function() {
+	var div = jQuery( "<div/>" ).appendTo( "#qunit-fixture" ),
+		units = [
+			"0 0",
+			"12px 12px",
+			"13px 12em",
+			"12em 13px",
+			"12em center",
+			"+12em center",
+			"12.2em center",
+			"center center",
+		],
+		l = units.length,
+		i = 0;
+
+	expect( l );
+
+	for( ; i < l; i++ ) {
+		div.css( "background-position", units [ i ] );
+		ok( div.css( "background-position" ), "can't get background-position in IE<9, see #10796" );
+	}
+});
+
 test("Do not append px to 'fill-opacity' #9548", 1, function() {
 
 	var $div = jQuery("<div>").appendTo("#qunit-fixture");
 
 	$div.css("fill-opacity", 0).animate({ "fill-opacity": 1.0 }, 0, function () {
 		equal( jQuery(this).css("fill-opacity"), 1, "Do not append px to 'fill-opacity'");
+	});
+
+});
+
+test("outerWidth(true) and css('margin') returning % instead of px in Webkit, see #10639", function() {
+	var container = jQuery( "<div/>" ).width(400).appendTo( "#qunit-fixture" ),
+		el = jQuery( "<div/>" ).css({ width: "50%", marginRight: "50%" }).appendTo( container );
+
+	equal( el.outerWidth(true), 400, "outerWidth(true) and css('margin') returning % instead of px in Webkit, see #10639" );
+});
+
+test( "cssHooks - expand", function() {
+	expect( 15 );
+	var result,
+		properties = {
+			margin: [ "marginTop", "marginRight", "marginBottom", "marginLeft" ],
+			borderWidth: [ "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth"],
+			padding: [ "paddingTop", "paddingRight", "paddingBottom", "paddingLeft" ]
+		};
+
+	jQuery.each( properties, function( property, keys ) {
+		var hook = jQuery.cssHooks[ property ],
+			expected = {};
+		jQuery.each( keys, function( _, key ) {
+			expected[ key ] = 10;
+		});
+		result = hook.expand( 10 );
+		deepEqual( result, expected, property + " expands properly with a number" );
+
+		jQuery.each( keys, function( _, key ) {
+			expected[ key ] = "10px";
+		});
+		result = hook.expand( "10px" );
+		deepEqual( result, expected, property + " expands properly with '10px'" );
+
+		expected[ keys[1] ] = expected[ keys[3] ] = "20px";
+		result = hook.expand( "10px 20px" );
+		deepEqual( result, expected, property + " expands properly with '10px 20px'" );
+
+		expected[ keys[2] ] = "30px";
+		result = hook.expand( "10px 20px 30px" );
+		deepEqual( result, expected, property + " expands properly with '10px 20px 30px'" );
+
+		expected[ keys[3] ] = "40px";
+		result = hook.expand( "10px 20px 30px 40px" );
+		deepEqual( result, expected, property + " expands properly with '10px 20px 30px 40px'" );
+
 	});
 
 });

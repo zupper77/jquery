@@ -4,29 +4,27 @@ var ralpha = /alpha\([^)]*\)/i,
 	ropacity = /opacity=([^)]*)/,
 	// fixed for IE9, see #8346
 	rupper = /([A-Z]|^ms)/g,
-	rnumpx = /^-?\d+(?:px)?$/i,
-	rnum = /^-?\d/,
+	rnum = /^[\-+]?(?:\d*\.)?\d+$/i,
+	rnumnonpx = /^-?(?:\d*\.)?\d+(?!px)[^\d\s]+$/i,
 	rrelNum = /^([\-+])=([\-+.\de]+)/,
+	rmargin = /^margin/,
 
 	cssShow = { position: "absolute", visibility: "hidden", display: "block" },
-	cssWidth = [ "Left", "Right" ],
-	cssHeight = [ "Top", "Bottom" ],
+
+	// order is important!
+	cssExpand = [ "Top", "Right", "Bottom", "Left" ],
+
 	curCSS,
 
 	getComputedStyle,
 	currentStyle;
 
 jQuery.fn.css = function( name, value ) {
-	// Setting 'undefined' is a no-op
-	if ( arguments.length === 2 && value === undefined ) {
-		return this;
-	}
-
-	return jQuery.access( this, name, value, true, function( elem, name, value ) {
+	return jQuery.access( this, function( elem, name, value ) {
 		return value !== undefined ?
 			jQuery.style( elem, name, value ) :
 			jQuery.css( elem, name );
-	});
+	}, name, value, arguments.length > 1 );
 };
 
 jQuery.extend({
@@ -145,56 +143,174 @@ jQuery.extend({
 
 	// A method for quickly swapping in/out CSS properties to get correct calculations
 	swap: function( elem, options, callback ) {
-		var old = {};
+		var old = {},
+			ret, name;
 
 		// Remember the old values, and insert the new ones
-		for ( var name in options ) {
+		for ( name in options ) {
 			old[ name ] = elem.style[ name ];
 			elem.style[ name ] = options[ name ];
 		}
 
-		callback.call( elem );
+		ret = callback.call( elem );
 
 		// Revert the old values
 		for ( name in options ) {
 			elem.style[ name ] = old[ name ];
 		}
+
+		return ret;
 	}
 });
 
 // DEPRECATED, Use jQuery.css() instead
 jQuery.curCSS = jQuery.css;
 
-jQuery.each(["height", "width"], function( i, name ) {
+if ( document.defaultView && document.defaultView.getComputedStyle ) {
+	getComputedStyle = function( elem, name ) {
+		var ret, defaultView, computedStyle, width,
+			style = elem.style;
+
+		name = name.replace( rupper, "-$1" ).toLowerCase();
+
+		if ( (defaultView = elem.ownerDocument.defaultView) &&
+				(computedStyle = defaultView.getComputedStyle( elem, null )) ) {
+
+			ret = computedStyle.getPropertyValue( name );
+			if ( ret === "" && !jQuery.contains( elem.ownerDocument.documentElement, elem ) ) {
+				ret = jQuery.style( elem, name );
+			}
+		}
+
+		// A tribute to the "awesome hack by Dean Edwards"
+		// WebKit uses "computed value (percentage if specified)" instead of "used value" for margins
+		// which is against the CSSOM draft spec: http://dev.w3.org/csswg/cssom/#resolved-values
+		if ( !jQuery.support.pixelMargin && computedStyle && rmargin.test( name ) && rnumnonpx.test( ret ) ) {
+			width = style.width;
+			style.width = ret;
+			ret = computedStyle.width;
+			style.width = width;
+		}
+
+		return ret;
+	};
+}
+
+if ( document.documentElement.currentStyle ) {
+	currentStyle = function( elem, name ) {
+		var left, rsLeft, uncomputed,
+			ret = elem.currentStyle && elem.currentStyle[ name ],
+			style = elem.style;
+
+		// Avoid setting ret to empty string here
+		// so we don't default to auto
+		if ( ret == null && style && (uncomputed = style[ name ]) ) {
+			ret = uncomputed;
+		}
+
+		// From the awesome hack by Dean Edwards
+		// http://erik.eae.net/archives/2007/07/27/18.54.15/#comment-102291
+
+		// If we're not dealing with a regular pixel number
+		// but a number that has a weird ending, we need to convert it to pixels
+		if ( rnumnonpx.test( ret ) ) {
+
+			// Remember the original values
+			left = style.left;
+			rsLeft = elem.runtimeStyle && elem.runtimeStyle.left;
+
+			// Put in the new values to get a computed value out
+			if ( rsLeft ) {
+				elem.runtimeStyle.left = elem.currentStyle.left;
+			}
+			style.left = name === "fontSize" ? "1em" : ret;
+			ret = style.pixelLeft + "px";
+
+			// Revert the changed values
+			style.left = left;
+			if ( rsLeft ) {
+				elem.runtimeStyle.left = rsLeft;
+			}
+		}
+
+		return ret === "" ? "auto" : ret;
+	};
+}
+
+curCSS = getComputedStyle || currentStyle;
+
+function getWidthOrHeight( elem, name, extra ) {
+
+	// Start with offset property
+	var val = name === "width" ? elem.offsetWidth : elem.offsetHeight,
+		i = name === "width" ? 1 : 0,
+		len = 4;
+
+	if ( val > 0 ) {
+		if ( extra !== "border" ) {
+			for ( ; i < len; i += 2 ) {
+				if ( !extra ) {
+					val -= parseFloat( jQuery.css( elem, "padding" + cssExpand[ i ] ) ) || 0;
+				}
+				if ( extra === "margin" ) {
+					val += parseFloat( jQuery.css( elem, extra + cssExpand[ i ] ) ) || 0;
+				} else {
+					val -= parseFloat( jQuery.css( elem, "border" + cssExpand[ i ] + "Width" ) ) || 0;
+				}
+			}
+		}
+
+		return val + "px";
+	}
+
+	// Fall back to computed then uncomputed css if necessary
+	val = curCSS( elem, name, name );
+	if ( val < 0 || val == null ) {
+		val = elem.style[ name ];
+	}
+
+	// Computed unit is not pixels. Stop here and return.
+	if ( rnumnonpx.test(val) ) {
+		return val;
+	}
+
+	// Normalize "", auto, and prepare for extra
+	val = parseFloat( val ) || 0;
+
+	// Add padding, border, margin
+	if ( extra ) {
+		for ( ; i < len; i += 2 ) {
+			val += parseFloat( jQuery.css( elem, "padding" + cssExpand[ i ] ) ) || 0;
+			if ( extra !== "padding" ) {
+				val += parseFloat( jQuery.css( elem, "border" + cssExpand[ i ] + "Width" ) ) || 0;
+			}
+			if ( extra === "margin" ) {
+				val += parseFloat( jQuery.css( elem, extra + cssExpand[ i ]) ) || 0;
+			}
+		}
+	}
+
+	return val + "px";
+}
+
+jQuery.each([ "height", "width" ], function( i, name ) {
 	jQuery.cssHooks[ name ] = {
 		get: function( elem, computed, extra ) {
-			var val;
-
 			if ( computed ) {
 				if ( elem.offsetWidth !== 0 ) {
-					return getWH( elem, name, extra );
+					return getWidthOrHeight( elem, name, extra );
 				} else {
-					jQuery.swap( elem, cssShow, function() {
-						val = getWH( elem, name, extra );
+					return jQuery.swap( elem, cssShow, function() {
+						return getWidthOrHeight( elem, name, extra );
 					});
 				}
-
-				return val;
 			}
 		},
 
 		set: function( elem, value ) {
-			if ( rnumpx.test( value ) ) {
-				// ignore negative width and height values #1599
-				value = parseFloat( value );
-
-				if ( value >= 0 ) {
-					return value + "px";
-				}
-
-			} else {
-				return value;
-			}
+			return rnum.test( value ) ?
+				value + "px" :
+				value;
 		}
 	};
 });
@@ -248,129 +364,17 @@ jQuery(function() {
 			get: function( elem, computed ) {
 				// WebKit Bug 13343 - getComputedStyle returns wrong value for margin-right
 				// Work around by temporarily setting element display to inline-block
-				var ret;
-				jQuery.swap( elem, { "display": "inline-block" }, function() {
+				return jQuery.swap( elem, { "display": "inline-block" }, function() {
 					if ( computed ) {
-						ret = curCSS( elem, "margin-right", "marginRight" );
+						return curCSS( elem, "margin-right", "marginRight" );
 					} else {
-						ret = elem.style.marginRight;
+						return elem.style.marginRight;
 					}
 				});
-				return ret;
 			}
 		};
 	}
 });
-
-if ( document.defaultView && document.defaultView.getComputedStyle ) {
-	getComputedStyle = function( elem, name ) {
-		var ret, defaultView, computedStyle;
-
-		name = name.replace( rupper, "-$1" ).toLowerCase();
-
-		if ( (defaultView = elem.ownerDocument.defaultView) &&
-				(computedStyle = defaultView.getComputedStyle( elem, null )) ) {
-			ret = computedStyle.getPropertyValue( name );
-			if ( ret === "" && !jQuery.contains( elem.ownerDocument.documentElement, elem ) ) {
-				ret = jQuery.style( elem, name );
-			}
-		}
-
-		return ret;
-	};
-}
-
-if ( document.documentElement.currentStyle ) {
-	currentStyle = function( elem, name ) {
-		var left, rsLeft, uncomputed,
-			ret = elem.currentStyle && elem.currentStyle[ name ],
-			style = elem.style;
-
-		// Avoid setting ret to empty string here
-		// so we don't default to auto
-		if ( ret === null && style && (uncomputed = style[ name ]) ) {
-			ret = uncomputed;
-		}
-
-		// From the awesome hack by Dean Edwards
-		// http://erik.eae.net/archives/2007/07/27/18.54.15/#comment-102291
-
-		// If we're not dealing with a regular pixel number
-		// but a number that has a weird ending, we need to convert it to pixels
-		if ( !rnumpx.test( ret ) && rnum.test( ret ) ) {
-
-			// Remember the original values
-			left = style.left;
-			rsLeft = elem.runtimeStyle && elem.runtimeStyle.left;
-
-			// Put in the new values to get a computed value out
-			if ( rsLeft ) {
-				elem.runtimeStyle.left = elem.currentStyle.left;
-			}
-			style.left = name === "fontSize" ? "1em" : ( ret || 0 );
-			ret = style.pixelLeft + "px";
-
-			// Revert the changed values
-			style.left = left;
-			if ( rsLeft ) {
-				elem.runtimeStyle.left = rsLeft;
-			}
-		}
-
-		return ret === "" ? "auto" : ret;
-	};
-}
-
-curCSS = getComputedStyle || currentStyle;
-
-function getWH( elem, name, extra ) {
-
-	// Start with offset property
-	var val = name === "width" ? elem.offsetWidth : elem.offsetHeight,
-		which = name === "width" ? cssWidth : cssHeight,
-		i = 0,
-		len = which.length;
-
-	if ( val > 0 ) {
-		if ( extra !== "border" ) {
-			for ( ; i < len; i++ ) {
-				if ( !extra ) {
-					val -= parseFloat( jQuery.css( elem, "padding" + which[ i ] ) ) || 0;
-				}
-				if ( extra === "margin" ) {
-					val += parseFloat( jQuery.css( elem, extra + which[ i ] ) ) || 0;
-				} else {
-					val -= parseFloat( jQuery.css( elem, "border" + which[ i ] + "Width" ) ) || 0;
-				}
-			}
-		}
-
-		return val + "px";
-	}
-
-	// Fall back to computed then uncomputed css if necessary
-	val = curCSS( elem, name, name );
-	if ( val < 0 || val == null ) {
-		val = elem.style[ name ] || 0;
-	}
-	// Normalize "", auto, and prepare for extra
-	val = parseFloat( val ) || 0;
-
-	// Add padding, border, margin
-	if ( extra ) {
-		for ( ; i < len; i++ ) {
-			val += parseFloat( jQuery.css( elem, "padding" + which[ i ] ) ) || 0;
-			if ( extra !== "padding" ) {
-				val += parseFloat( jQuery.css( elem, "border" + which[ i ] + "Width" ) ) || 0;
-			}
-			if ( extra === "margin" ) {
-				val += parseFloat( jQuery.css( elem, extra + which[ i ] ) ) || 0;
-			}
-		}
-	}
-
-	return val + "px";
-}
 
 if ( jQuery.expr && jQuery.expr.filters ) {
 	jQuery.expr.filters.hidden = function( elem ) {
@@ -384,5 +388,30 @@ if ( jQuery.expr && jQuery.expr.filters ) {
 		return !jQuery.expr.filters.hidden( elem );
 	};
 }
+
+// These hooks are used by animate to expand properties
+jQuery.each({
+	margin: "",
+	padding: "",
+	border: "Width"
+}, function( prefix, suffix ) {
+
+	jQuery.cssHooks[ prefix + suffix ] = {
+		expand: function( value ) {
+			var i,
+
+				// assumes a single number if not a string
+				parts = typeof value === "string" ? value.split(" ") : [ value ],
+				expanded = {};
+
+			for ( i = 0; i < 4; i++ ) {
+				expanded[ prefix + cssExpand[ i ] + suffix ] =
+					parts[ i ] || parts[ i - 2 ] || parts[ 0 ];
+			}
+
+			return expanded;
+		}
+	};
+});
 
 })( jQuery );
