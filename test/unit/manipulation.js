@@ -1796,3 +1796,38 @@ test("Ensure oldIE creates a new set on appendTo (#8894)", function() {
 	strictEqual( jQuery("<bdi/>").clone().addClass("test").appendTo("<div/>").end().hasClass("test"), false, "Check jQuery.fn.appendTo after clone html5 element" );
 	strictEqual( jQuery("<p/>").appendTo("<div/>").end().length, jQuery("<p>test</p>").appendTo("<div/>").end().length, "Elements created with createElement and with createDocumentFragment should be treated alike" );
 });
+
+test( "Treat append, prepend, before, after, appendTo, prependTo, insertBefore and insertAfter as noop if destination is original element (#4087)", function() {
+	expect( 16 );
+
+	var div, p,
+		container = jQuery("<div class='testss'/>").appendTo("#qunit-fixture"),
+		methods = [ "append", "prepend", "before", "after",
+					"appendTo", "prependTo", "insertBefore", "insertAfter" ];
+
+	container.html("<div></div><p></p>");
+
+	div = container.find("div");
+	p = container.find("p");
+
+	jQuery.each( methods, function() {
+		var parent;
+
+		try {
+			parent = div[ this ]( div )[ 0 ].parentNode;
+			ok( parent && parent.nodeType === 1, "call for " + this + "() should be treated as noop, if it applied to original element" );
+		} catch ( e ) {
+			ok( false, this + "() is failed" );
+		}
+	});
+
+	jQuery.each( methods, function() {
+		try {
+			div[ this ]( div.add( "p" ) );
+			ok( container.find( "p" ).length && container.find( "div" ).length,
+					"If in collection, we have element whose is not destination element, than call for " + this + "() should be applied only for it" );
+		} catch ( e ) {
+			ok( false, this + "() is failed" );
+		}
+	});
+});

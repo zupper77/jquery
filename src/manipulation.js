@@ -468,7 +468,8 @@ function cloneFixAttributes( src, dest ) {
 
 jQuery.buildFragment = function( args, context, scripts ) {
 	var fragment, cacheable, cachehit,
-	first = args[ 0 ];
+		instance = context,
+		first = args[ 0 ];
 
 	// Set context from what may come in as undefined or a jQuery collection or a node
 	context = context || document;
@@ -499,7 +500,7 @@ jQuery.buildFragment = function( args, context, scripts ) {
 
 	if ( !fragment ) {
 		fragment = context.createDocumentFragment();
-		jQuery.clean( args, context, fragment, scripts );
+		jQuery.clean( args, context, fragment, scripts, instance );
 
 		// Update the cache, but only store false
 		// unless this is a second parsing of the same content
@@ -620,7 +621,7 @@ jQuery.extend({
 		return clone;
 	},
 
-	clean: function( elems, context, fragment, scripts ) {
+	clean: function( elems, context, fragment, scripts, instance ) {
 		var j, safe, elem, tag, wrap, depth, div, hasBody, tbody, len, handleScript, jsTags,
 			i = 0,
 			ret = [];
@@ -735,8 +736,13 @@ jQuery.extend({
 			};
 
 			for ( i = 0; (elem = ret[i]) != null; i++ ) {
+
 				// Check if we're done after handling an executable script
-				if ( !( jQuery.nodeName( elem, "script" ) && handleScript( elem ) ) ) {
+				if ( !( jQuery.nodeName( elem, "script" ) && handleScript( elem ) ) &&
+
+						// See #4087
+						!~jQuery.inArray( elem, instance ) ) {
+
 					// Append to fragment and handle embedded scripts
 					fragment.appendChild( elem );
 					if ( typeof elem.getElementsByTagName !== "undefined" ) {
