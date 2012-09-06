@@ -48,7 +48,7 @@ wrapMap.th = wrapMap.td;
 // IE6-8 can't serialize link, script, style, or any html5 (NoScope) tags,
 // unless wrapped in a div with non-breaking characters in front of it.
 if ( !jQuery.support.htmlSerialize ) {
-	wrapMap._default = [ 1, "X<div>", "</div>" ];
+	wrapMap._default = [ 1, "X<div>", "" ];
 }
 
 jQuery.fn.extend({
@@ -144,27 +144,25 @@ jQuery.fn.extend({
 	before: function() {
 		if ( !isDisconnected( this[0] ) ) {
 			return this.domManip(arguments, false, function( elem ) {
-				this.parentNode.insertBefore( elem, this );
+				if ( this.parentNode ) {
+					this.parentNode.insertBefore( elem, this );
+				}
 			});
 		}
 
-		if ( arguments.length ) {
-			var set = jQuery.clean( arguments );
-			return this.pushStack( jQuery.merge( set, this ), "before", this.selector );
-		}
+		return this.pushStack( jQuery.merge( jQuery.clean( arguments ), this ), "before", this.selector );
 	},
 
 	after: function() {
 		if ( !isDisconnected( this[0] ) ) {
 			return this.domManip(arguments, false, function( elem ) {
-				this.parentNode.insertBefore( elem, this.nextSibling );
+				if ( this.parentNode ) {
+					this.parentNode.insertBefore( elem, this.nextSibling );
+				}
 			});
 		}
 
-		if ( arguments.length ) {
-			var set = jQuery.clean( arguments );
-			return this.pushStack( jQuery.merge( this, set ), "after", this.selector );
-		}
+		return this.pushStack( jQuery.merge( this.toArray(), jQuery.clean( arguments ) ), "after", this.selector );
 	},
 
 	// keepData is for internal use only--do not document
@@ -638,7 +636,7 @@ jQuery.extend({
 	},
 
 	clean: function( elems, context, fragment, scripts ) {
-		var j, safe, elem, tag, wrap, depth, div, hasBody, tbody, len, handleScript, jsTags,
+		var j, safe, elem, tag, wrap, depth, div, hasBody, tbody, len, handleScript, jsTags, parent,
 			i = 0,
 			ret = [];
 
@@ -666,13 +664,7 @@ jQuery.extend({
 					// Ensure a safe container in which to render the html
 					safe = safe || createSafeFragment( context );
 
-					// Fix #12346 for IE
-					if ( div && !jQuery.support.removedContent ) {
-						safe.removeChild( div );
-						div = null;
-					}
-
-					div = div || safe.appendChild( context.createElement("div") );
+					parent = div = div || safe.appendChild( context.createElement("div") );
 
 					// Fix "XHTML"-style tags in all browsers
 					elem = elem.replace(rxhtmlTag, "<$1></$2>");
@@ -682,7 +674,9 @@ jQuery.extend({
 					wrap = wrapMap[ tag ] || wrapMap._default;
 					depth = wrap[0];
 
-					div.innerHTML = ""; // Fix #12346 for WebKit
+					// Fix #12346 for WebKit and IE > 8
+					// or mark the node so we can fix this in oldIE
+					div.textContent = "X";
 					div.innerHTML = wrap[1] + elem + wrap[2];
 
 					// Move to the right depth
@@ -727,12 +721,39 @@ jQuery.extend({
 			} else {
 				jQuery.merge( ret, elem );
 			}
+
+			// Fix #12392 and #12346 for oldIE
+			if ( parent && parent.textContent === "X" ) {
+
+				// Fix #11356: Clear elements from safeFragment
+				safe.removeChild( parent );
+
+				// Wrapper should be attached to different fragment
+				// otherwise removeNode wont work properly
+				parent.removeChild( div = parent.lastChild );
+
+				// Use removeNode instead of innerHTML
+				div.removeNode();
+
+				// Re-create the div in next for iteration
+				parent = div = null;
+			}
 		}
 
-		// Fix #11356: Clear elements from safeFragment
 		if ( div ) {
-			safe.removeChild( div );
-			elem = div = safe = null;
+
+			// Fix #12392 for WebKit and IE > 8
+			if ( parent.textContent !== "X" ) {
+
+				// Fix #11356: Clear elements from safeFragment
+				safe.removeChild( div );
+
+				// We have to use textContent instead of innerHTML,
+				// innerHTML will destroy content of removed nodes in IE
+				div.textContent = "";
+			}
+
+			elem = safe = null;
 		}
 
 		// Reset defaultChecked for any radios and checkboxes

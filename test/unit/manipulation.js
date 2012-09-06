@@ -603,6 +603,24 @@ test( "append(multiple html-strings and html-entities, #12346)", function() {
 	div.empty();
 });
 
+
+test( "jQuery.clean, #12392", function() {
+	var elems = jQuery.clean([ "<div>test div</div>", "<p>test p</p>" ]);
+
+	ok( elems[ 0 ].parentNode == null || elems[ 0 ].parentNode.nodeType === 11, "parentNode should be documentFragment or null" );
+	ok( elems[ 1 ].parentNode == null || elems[ 1 ].parentNode.nodeType === 11, "parentNode should be documentFragment or null" );
+
+	equal( elems[ 0 ].innerHTML, "test div", "Content should be preserved" );
+	equal( elems[ 1 ].innerHTML, "test p", "Content should be preserved" );
+
+	elems = jQuery().before("<p>test</p>");
+
+	ok( elems[ 0 ].parentNode == null || elems[ 0 ].parentNode.nodeType === 11, "parentNode should be documentFragment or null" );
+	equal( elems[ 0 ].innerHTML, "test", "Content should be preserved" );
+
+	equal( jQuery.clean([ "<span><span>" ]).length, 1, "Incorrect html-strings should not break anything" );
+});
+
 if ( jQuery.css ) {
 	test("HTML5 Elements inherit styles from style rules (Bug #10501)", function () {
 		expect(1);
@@ -893,7 +911,7 @@ test("prependTo(String|Element|Array&lt;Element&gt;|jQuery)", function() {
 });
 
 var testBefore = function(val) {
-	expect(7);
+	expect(8);
 	var expected = "This is a normal link: bugaYahoo";
 	jQuery("#yahoo").before(val( "<b>buga</b>" ));
 	equal( jQuery("#en").text(), expected, "Insert String before" );
@@ -921,6 +939,10 @@ var testBefore = function(val) {
 	var set = jQuery("<div/>").before("<span>test</span>");
 	equal( set[0].nodeName.toLowerCase(), "span", "Insert the element before the disconnected node." );
 	equal( set.length, 2, "Insert the element before the disconnected node." );
+
+	jQuery("#firstp").add("<div/>").before("#first");
+	jQuery("#firstp").add("<div/>").after("#first");
+	ok( true, "Should not raise exception for before/after methods of collection has a not first disconnected node" );
 };
 
 test("before(String|Element|Array&lt;Element&gt;|jQuery)", function() {
@@ -941,7 +963,7 @@ test("before and after w/ empty object (#10812)", function() {
 
 test("before and after on disconnected node (#10517)", function() {
 	expect(2);
-	
+
 	equal( jQuery("<input type='checkbox'/>").before("<div/>").length, 2, "before() returned all elements" );
 	equal( jQuery("<input type='checkbox'/>").after("<div/>").length, 2, "after() returned all elements" );
 });
@@ -1950,7 +1972,7 @@ test("checked state is cloned with clone()", function(){
 	var elem = jQuery.parseHTML("<input type='checkbox' checked='checked'/>")[0];
 	elem.checked = false;
 	equal( jQuery(elem).clone().attr("id","clone")[0].checked, false, "Checked false state correctly cloned" );
-	
+
 	elem = jQuery.parseHTML("<input type='checkbox'/>")[0];
 	elem.checked = true;
 	equal( jQuery(elem).clone().attr("id","clone")[0].checked, true, "Checked true state correctly cloned" );
