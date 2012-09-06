@@ -144,7 +144,7 @@ jQuery.fn.extend({
 	before: function() {
 		if ( !isDisconnected( this[0] ) ) {
 			return this.domManip(arguments, false, function( elem ) {
-				if ( this.parentNode ) {
+				if ( this.parentNode && this.parentNode.nodeType === 1 ) {
 					this.parentNode.insertBefore( elem, this );
 				}
 			});
@@ -156,7 +156,7 @@ jQuery.fn.extend({
 	after: function() {
 		if ( !isDisconnected( this[0] ) ) {
 			return this.domManip(arguments, false, function( elem ) {
-				if ( this.parentNode ) {
+				if ( this.parentNode && this.parentNode.nodeType === 1 ) {
 					this.parentNode.insertBefore( elem, this.nextSibling );
 				}
 			});
@@ -675,7 +675,7 @@ jQuery.extend({
 					depth = wrap[0];
 
 					// Fix #12346 for WebKit and IE > 8
-					// or mark the node so we can fix this in oldIE
+					// or mark the node so we can fix this in oldIE later
 					div.textContent = "X";
 					div.innerHTML = wrap[1] + elem + wrap[2];
 
@@ -728,11 +728,11 @@ jQuery.extend({
 				// Fix #11356: Clear elements from safeFragment
 				safe.removeChild( parent );
 
-				// Wrapper should be attached to different fragment
+				// Wrapper should be attached to different fragment,
 				// otherwise removeNode wont work properly
 				parent.removeChild( div = parent.lastChild );
 
-				// Use removeNode instead of innerHTML
+				// Because innerHTML destroys content of disconnected nodes use removeNode
 				div.removeNode();
 
 				// Re-create the div in next for iteration
@@ -740,18 +740,15 @@ jQuery.extend({
 			}
 		}
 
-		if ( div ) {
+		// Fix #12392 for WebKit and IE > 8
+		if ( parent && parent.textContent !== "X" ) {
 
-			// Fix #12392 for WebKit and IE > 8
-			if ( parent.textContent !== "X" ) {
+			// Fix #11356: Clear elements from safeFragment
+			safe.removeChild( div );
 
-				// Fix #11356: Clear elements from safeFragment
-				safe.removeChild( div );
-
-				// We have to use textContent instead of innerHTML,
-				// innerHTML will destroy content of removed nodes in IE
-				div.textContent = "";
-			}
+			// We have to use textContent instead of innerHTML,
+			// innerHTML will destroy content of removed nodes in IE
+			div.textContent = "";
 
 			elem = safe = null;
 		}

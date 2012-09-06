@@ -911,7 +911,7 @@ test("prependTo(String|Element|Array&lt;Element&gt;|jQuery)", function() {
 });
 
 var testBefore = function(val) {
-	expect(8);
+	expect(10);
 	var expected = "This is a normal link: bugaYahoo";
 	jQuery("#yahoo").before(val( "<b>buga</b>" ));
 	equal( jQuery("#en").text(), expected, "Insert String before" );
@@ -942,7 +942,13 @@ var testBefore = function(val) {
 
 	jQuery("#firstp").add("<div/>").before("#first");
 	jQuery("#firstp").add("<div/>").after("#first");
-	ok( true, "Should not raise exception for before/after methods of collection has a not first disconnected node" );
+	ok( true, "Should not raise exception on before/after" );
+
+	var before = jQuery("#firstp").add("<div>test</div>").before("#first")[1].parentNode.childNodes.length,
+		after = jQuery("#firstp").add("<div>test</div>").after("#first")[1].parentNode.childNodes.length;
+
+	equal( before, 1, "If collection has a disconnected nodes treat is as no-op" );
+	equal( after, 1, "If collection has a disconnected nodes treat is as no-op" );
 };
 
 test("before(String|Element|Array&lt;Element&gt;|jQuery)", function() {
