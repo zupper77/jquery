@@ -463,18 +463,12 @@ function fixCloneNodeIssues( src, dest ) {
 		restoreScript( dest );
 
 	// IE6-10 improperly clones children of object elements using classid.
-	// IE10 throws NoModificationAllowedError if parent is null, #12132.
 	} else if ( nodeName === "object" ) {
+
+		// IE10 throws NoModificationAllowedError if parent is null, #12132
+		// IE9 will destroy innerHTML property if we perfom this fix without check for parent
 		if ( dest.parentNode ) {
 			dest.outerHTML = src.outerHTML;
-		}
-
-		// This path appears unavoidable for IE9. When cloning an object
-		// element in IE9, the outerHTML strategy above is not sufficient.
-		// If the src has innerHTML and the destination does not,
-		// copy the src.innerHTML into the dest.innerHTML. #10324
-		if ( jQuery.support.html5Clone && ( src.innerHTML && !jQuery.trim(dest.innerHTML) ) ) {
-			dest.innerHTML = src.innerHTML;
 		}
 
 	} else if ( nodeName === "input" && manipulation_rcheckableType.test( src.type ) ) {
