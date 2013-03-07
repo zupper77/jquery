@@ -469,10 +469,18 @@ test("siblings([String]) - jQuery only", function() {
 	deepEqual( jQuery("#sndp").siblings(":has(a)").get(), q("en", "sap"), "Check for filtered siblings (has anchor child element)" );
 });
 
-test("children([String])", function() {
-	expect(2);
+test("children([String])", 5, function() {
+	var fragment = document.createDocumentFragment(),
+		doc = jQuery.parseXML("<root/>" );
+
 	deepEqual( jQuery("#foo").children().get(), q("sndp", "en", "sap"), "Check for children" );
 	deepEqual( jQuery("#foo").children("#en, #sap").get(), q("en", "sap"), "Check for multiple filters" );
+
+	fragment = jQuery( fragment ).append("<div/><p/>");
+
+	equal( fragment.children().length, 2, "jQuery#children can work with document fragments" );
+	equal( jQuery( doc ).children().length, 1, "jQuery#children can work with documents" );
+	equal( jQuery("#nonnodes").children().length, 1, "Comment nodes should not end up in jQuery set through jQuery#children call" );
 });
 
 test("children([String]) - jQuery only", function() {

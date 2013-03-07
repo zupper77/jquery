@@ -175,7 +175,10 @@ jQuery.each({
 		return jQuery.sibling( ( elem.parentNode || {} ).firstChild, elem );
 	},
 	children: function( elem ) {
-		return jQuery.sibling( elem.firstChild );
+		var children = elem.children;
+
+		// documentFragment or document does not have children property
+		return children ? jQuery.merge( [], children ) : jQuery.sibling( elem.firstChild );
 	},
 	contents: function( elem ) {
 		return jQuery.nodeName( elem, "iframe" ) ?
