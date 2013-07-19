@@ -76,7 +76,7 @@ function createTween( value, prop, animation ) {
 	}
 }
 
-function Animation( elem, properties, options ) {
+function Animation( elem, properties, options, notInQueue ) {
 	var result,
 		stopped,
 		index = 0,
@@ -89,6 +89,7 @@ function Animation( elem, properties, options ) {
 			if ( stopped ) {
 				return false;
 			}
+
 			var currentTime = fxNow || createFxNow(),
 				remaining = Math.max( 0, animation.startTime + animation.duration - currentTime ),
 				// archaic crash bug won't allow us to use 1 - ( 0.5 || 0 ) (#12497)
@@ -165,13 +166,15 @@ function Animation( elem, properties, options ) {
 		animation.opts.start.call( elem, animation );
 	}
 
-	jQuery.fx.timer(
-		jQuery.extend( tick, {
-			elem: elem,
-			anim: animation,
-			queue: animation.opts.queue
-		})
-	);
+	if ( !notInQueue ) {
+		jQuery.fx.timer(
+			jQuery.extend( tick, {
+				elem: elem,
+				anim: animation,
+				queue: animation.opts.queue
+			})
+		);
+	}
 
 	// attach callbacks from options
 	return animation.progress( animation.opts.progress )
@@ -485,9 +488,9 @@ jQuery.fn.extend({
 	animate: function( prop, speed, easing, callback ) {
 		var empty = jQuery.isEmptyObject( prop ),
 			optall = jQuery.speed( speed, easing, callback ),
-			doAnimation = function() {
+			doAnimation = function( notInQueue ) {
 				// Operate on a copy of prop so per-property easing won't be lost
-				var anim = Animation( this, jQuery.extend( {}, prop ), optall );
+				var anim = Animation( this, jQuery.extend( {}, prop ), optall, notInQueue );
 
 				// Empty animations, or finishing resolves immediately
 				if ( empty || data_priv.get( this, "finish" ) ) {
@@ -583,7 +586,7 @@ jQuery.fn.extend({
 			// look for any animations in the old queue and finish them
 			for ( index = 0; index < length; index++ ) {
 				if ( queue[ index ] && queue[ index ].finish ) {
-					queue[ index ].finish.call( this );
+					queue[ index ].finish.call( this, true );
 				}
 			}
 
@@ -677,7 +680,6 @@ jQuery.fx.tick = function() {
 		i = 0;
 
 	fxNow = jQuery.now();
-
 	for ( ; i < timers.length; i++ ) {
 		timer = timers[ i ];
 		// Checks the timer has not already been removed

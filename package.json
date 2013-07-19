@@ -33,5 +33,10 @@
 		"testswarm": "~1.1.0",
 		"archiver": "~0.4.6"
 	},
+
+	"scripts": {
+		"install": "bower install"
+	},
+
 	"keywords": []
 }

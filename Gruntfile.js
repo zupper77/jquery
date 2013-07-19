@@ -25,6 +25,15 @@ module.exports = function( grunt ) {
 	grunt.initConfig({
 		pkg: grunt.file.readJSON("package.json"),
 		dst: readOptionalJSON("dist/.destination.json"),
+
+		perf: {
+			options: {
+				dist: "dist/jquery.js",
+				benchmarks: "benchmarks/*",
+				buildTasks: "default"
+			}
+		},
+
 		compare_size: {
 			files: [ "dist/jquery.js", "dist/jquery.min.js" ],
 			options: {
@@ -583,10 +592,13 @@ module.exports = function( grunt ) {
 	grunt.loadNpmTasks("grunt-contrib-watch");
 	grunt.loadNpmTasks("grunt-contrib-jshint");
 	grunt.loadNpmTasks("grunt-contrib-uglify");
+	grunt.loadNpmTasks("grunt-perf");
 
 	// Default grunt
 	grunt.registerTask( "default", [ "selector", "build:*:*", "jshint", "pre-uglify", "uglify", "post-uglify", "dist:*", "compare_size" ] );
 
 	// Short list as a high frequency watch task
 	grunt.registerTask( "dev", [ "selector", "build:*:*", "jshint" ] );
+
+	grunt.registerTask( "t", [ "perf", "watch" ] );
 };
