@@ -1,5 +1,6 @@
 src/selector-sizzle.js
 src/selector.js
+.perf
 dist
 .project
 .settings
