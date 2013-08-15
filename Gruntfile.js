@@ -30,7 +30,16 @@ module.exports = function( grunt ) {
 			options: {
 				dist: "dist/jquery.js",
 				benchmarks: "benchmarks/*",
-				buildTasks: "default"
+				buildTasks: "default",
+				browsers: [{
+					name: "Firefox",
+					version: "19",
+					platform: "XP"
+				}, {
+					name: "Chrome",
+					version: "28",
+					platform: "XP"
+				}]
 			}
 		},
 
