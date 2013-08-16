@@ -1,9 +1,10 @@
 perf(name="replaceWith")
     body
-        <div id="div">test</div>
+        <div id="placeholder"></div>
+
     script(setup).
-        var currentDiv = jQuery( document.getElementById( "div" ) ),
-            newDiv = document.createElement("div");
+        var currentDiv = jQuery( "<div/>" ).appendTo( "#placeholder" ),
+            newDiv = document.createElement( "div" );
 
     script(runner).
         currentDiv.replaceWith( newDiv );
@@ -11,8 +12,9 @@ perf(name="replaceWith")
 perf(name="remove")
     body
         <div id="placeholder"></div>
+
     script(setup).
-        var div = jQuery("<div/>").appendTo( "#placeholder" );
+        var div = jQuery( "<div/>" ).appendTo( "#placeholder" );
 
     script(runner).
         div.remove();
