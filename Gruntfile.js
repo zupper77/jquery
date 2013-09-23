@@ -32,10 +32,6 @@ module.exports = function( grunt ) {
 				benchmarks: "benchmarks/*",
 				buildTasks: "default",
 				browsers: [{
-					browserName: "Firefox",
-					version: "23",
-					platform: "Windows XP"
-				}, {
 					browserName: "Chrome",
 					version: "27",
 					platform: "Windows XP"
