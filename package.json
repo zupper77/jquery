@@ -29,6 +29,7 @@
 		"grunt-contrib-watch": "~0.4.4",
 		"grunt-contrib-jshint": "~0.6.0",
 		"grunt-contrib-uglify": "~0.2.2",
+		"grunt-perf": "git://github.com/markelog/grunt-perf.git#tests",
 		"gzip-js": "0.3.2",
 		"testswarm": "~1.1.0",
 		"archiver": "~0.4.6"
