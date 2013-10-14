@@ -604,6 +604,4 @@ module.exports = function( grunt ) {
 
 	// Short list as a high frequency watch task
 	grunt.registerTask( "dev", [ "selector", "build:*:*", "jshint" ] );
-
-	grunt.registerTask( "t", [ "perf", "watch" ] );
 };
