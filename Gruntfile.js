@@ -27,10 +27,9 @@ module.exports = function( grunt ) {
 		dst: readOptionalJSON("dist/.destination.json"),
 
 		perf: {
+			files: "benchmarks/*.jade",
 			options: {
 				dist: "dist/jquery.js",
-				benchmarks: "benchmarks/*",
-				buildTasks: "default",
 				browsers: [{
 					browserName: "Chrome",
 					version: "27",
