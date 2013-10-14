@@ -1,22 +1,23 @@
-perf(name="replaceWith")
-    body
-        <div id="placeholder"></div>
+module(name="manipulation")
+	perf(name="replaceWith")
+		body
+			<div id="placeholder"></div>
 
-    script(setup).
-        var currentDiv = jQuery( "<div/>" ).appendTo( "#placeholder" ),
-            newDiv = document.createElement( "div" );
+		script(setup).
+			var currentDiv = jQuery( "<div/>" ).appendTo( "#placeholder" ),
+				newDiv = document.createElement( "div" );
 
-    script(runner).
-        currentDiv.replaceWith( newDiv );
+		script(runner).
+			currentDiv.replaceWith( newDiv );
 
-perf(name="remove")
-    body
-        <div id="placeholder"></div>
+	perf(name="remove")
+		body
+			<div id="placeholder"></div>
 
-    script(setup).
-        var div = jQuery( "<div/>" ).appendTo( "#placeholder" );
+		script(setup).
+			var div = jQuery( "<div/>" ).appendTo( "#placeholder" );
 
-    script(runner).
-        div.remove();
+		script(runner).
+			div.remove();
 
 
