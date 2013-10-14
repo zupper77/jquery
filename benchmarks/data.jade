@@ -1,0 +1,10 @@
+module(name="data")
+	perf(name="Set data")
+		body
+			<div id="placeholder"></div>
+
+		script(setup).
+			var placeholder = jQuery( "#placeholder" );
+
+		script(runner).
+			placeholder.data( "test", "test" );
